@@ -2,8 +2,12 @@ const fetch = require('node-fetch');
 
 class GeminiService {
     constructor() {
-        this.apiKey = process.env.GEMINI_API_KEY || 'AIzaSyCtYz3ls8Y2257jNN5Ru2P9bVBFKdkgWko';
+        this.apiKey = process.env.GEMINI_API_KEY;
         this.baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent';
+        
+        if (!this.apiKey) {
+            console.warn('GEMINI_API_KEY environment variable is not set. AI image generation will not work.');
+        }
     }
 
     /**
@@ -16,6 +20,10 @@ class GeminiService {
      */
     async generateProductImage(producto, presentacion, base64Image, text) {
         try {
+            if (!this.apiKey) {
+                throw new Error('GEMINI_API_KEY environment variable is not set. AI image generation is disabled.');
+            }
+            
             console.log(`Generating AI image for product: ${producto}, presentation: ${presentacion}`);
             console.log(`Text parameter received:`, text);
             console.log(`Text type:`, typeof text);
