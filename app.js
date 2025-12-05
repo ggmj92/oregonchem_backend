@@ -9,16 +9,11 @@ const mongoose = require('mongoose');
 dotenv.config();
 
 // Import routes and configurations
-const routes = require("./src/routes/apiRoutes");
 const authRouter = require("./src/routes/authRoutes");
 const qiRoutes = require("./src/routes/qiRoutes");
-
-// const analyticsRoutes = require('./src/routes/analyticsRoutes'); // Temporarily disabled due to Firebase config issues
 const aiImageRoutes = require('./src/routes/aiImageRoutes');
-const { admin, mainApp, analyticsApp } = require(path.resolve(__dirname, 'src/config/firebaseAdminInit'));
-const { createQuote } = require(path.resolve(__dirname, 'src/controllers/QuoteController'));
-const { Product } = require('./src/models/Product');
 const quoteRoutes = require('./src/routes/quoteRoutes');
+const { admin, mainApp, analyticsApp } = require(path.resolve(__dirname, 'src/config/firebaseAdminInit'));
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -28,13 +23,9 @@ console.log('Starting server with environment:', process.env.NODE_ENV || 'develo
 console.log('MongoDB URI:', process.env.MONGODB_URI_PROD ? 'Set' : 'Not set');
 console.log('Firebase Project ID:', process.env.FIREBASE_PROJECT_ID ? 'Set' : 'Not set');
 
-// Database connection
-mongoose.connect(process.env.MONGODB_URI_PROD)
-  .then(() => console.log('Connected to MongoDB Production Database'))
-  .catch(err => {
-    console.error('MongoDB connection error:', err);
-    process.exit(1); // Exit if database connection fails
-  });
+// QI MongoDB connection
+const qiConnection = require('./src/config/qiDatabase');
+console.log('✅ Connected to QI MongoDB Database (localhost)');
 
 // CORS configuration
 const allowedOrigins = [
@@ -135,8 +126,9 @@ app.get('/api/health', async (req, res) => {
   try {
     console.log('Health check requested from origin:', req.headers.origin);
 
-    // Check MongoDB connection
-    const mongoStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+    // Check QI MongoDB connection
+    const qiConnection = require('./src/config/qiDatabase');
+    const mongoStatus = qiConnection.readyState === 1 ? 'connected' : 'disconnected';
 
     // Check Firebase Admin SDK
     let firebaseStatus = 'disconnected';
@@ -192,14 +184,11 @@ app.get('/api/test-auth', (req, res) => {
 });
 
 // Routes
-app.use("/api", routes);
 app.use("/auth", authRouter);
-app.use("/api/qi", qiRoutes); // QI MongoDB routes
-app.post('/api/quotes', createQuote);
-app.get('/favicon.ico', (req, res) => res.status(204));
-// app.use('/api/analytics', analyticsRoutes); // Temporarily disabled due to Firebase config issues
+app.use("/api/qi", qiRoutes); // QI MongoDB API
 app.use('/api/public/quotes', quoteRoutes);
 app.use('/api/ai-images', aiImageRoutes);
+app.get('/favicon.ico', (req, res) => res.status(204));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
