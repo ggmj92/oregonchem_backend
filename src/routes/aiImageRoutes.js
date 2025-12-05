@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const geminiService = require('../services/geminiService');
-const Presentation = require('../models/Presentation');
+const Presentation = require('../models/QI/CanonicalPresentation');
 const authMiddleware = require('../middlewares/authMiddleware');
 
 /**
@@ -28,11 +28,11 @@ router.post('/generate', authMiddleware, async (req, res) => {
         // Get unique presentation template IDs
         const uniqueTemplateIds = [...new Set(presentaciones.map(p => p.id))];
         console.log('Unique template IDs:', uniqueTemplateIds);
-        
+
         // Fetch presentation templates from database
         const presentationIds = uniqueTemplateIds.map(id => new mongoose.Types.ObjectId(id));
-        const presentations = await Presentation.find({ 
-            _id: { $in: presentationIds } 
+        const presentations = await Presentation.find({
+            _id: { $in: presentationIds }
         });
 
         if (presentations.length === 0) {
@@ -56,7 +56,7 @@ router.post('/generate', authMiddleware, async (req, res) => {
                 console.error(`Template not found for ID: ${presData.id}`);
                 return null;
             }
-            
+
             return {
                 id: presData.id,
                 name: template.name,
@@ -69,7 +69,7 @@ router.post('/generate', authMiddleware, async (req, res) => {
 
         // Filter out presentations without base64 data
         const validPresentations = presentationsWithData.filter(p => p.base64Image);
-        
+
         if (validPresentations.length === 0) {
             return res.status(400).json({
                 success: false,
@@ -79,7 +79,7 @@ router.post('/generate', authMiddleware, async (req, res) => {
 
         // Generate AI images
         const results = await geminiService.generateMultipleProductImages(
-            producto, 
+            producto,
             validPresentations
         );
 
@@ -154,13 +154,13 @@ router.post('/generate-single', authMiddleware, async (req, res) => {
 router.get('/test', async (req, res) => {
     try {
         console.log('Testing Gemini API connection...');
-        
+
         // Test with a simple 1x1 pixel PNG
         const testBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
-        
+
         const defaultPrompt = "Edita exclusivamente la zona blanca de la etiqueta del producto, ese espacio vacío en blanco es el único lugar editable; en él agrega el nombre del producto: {producto} y debajo su presentación: {presentación}, con apariencia real de impresión en etiqueta; utiliza tipografía sans-serif moderna (Helvetica/Inter/Roboto o similar), color negro puro (#000000) sin contornos ni efectos, el nombre en seminegrita/medium y la presentación en regular/medium a un 70–80% del tamaño del nombre, alineada a la izquierda; si el nombre es largo divídelo automáticamente en dos líneas en lugar de reducir demasiado el tamaño; mantén márgenes internos del 4–6% para que el texto no se salga del área, aplica ligera curvatura/perspectiva para que ambas líneas sigan la forma cilíndrica del envase y se perciban adheridas a la etiqueta, simulando tinta impresa sin añadir gráficos ni efectos extra, conservando la iluminación, textura y proporciones originales del envase, con resultado nítido, fotorealista y sin artefactos.";
         const result = await geminiService.generateProductImage('Test Product', 'Test Presentation', testBase64, defaultPrompt);
-        
+
         res.json({
             success: result.success,
             message: result.success ? 'Gemini API is working correctly' : 'Gemini API test failed',
