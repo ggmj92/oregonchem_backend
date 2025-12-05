@@ -163,7 +163,34 @@ npm start
 }
 ```
 
-## 🚢 Deployment (Render.com)
+## 🚢 Deployment
+
+### Vercel (Recommended)
+
+1. **Install Vercel CLI**:
+
+   ```bash
+   npm install -g vercel
+   ```
+
+2. **Login to Vercel**:
+
+   ```bash
+   vercel login
+   ```
+
+3. **Deploy**:
+
+   ```bash
+   vercel --prod
+   ```
+
+4. **Add Environment Variables** in Vercel Dashboard:
+   - Go to Project Settings → Environment Variables
+   - Add all variables from `.env`
+   - Redeploy after adding variables
+
+### Render.com (Alternative)
 
 1. **Create Web Service** on Render.com
 2. **Connect GitHub repository**

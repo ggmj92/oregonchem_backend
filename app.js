@@ -29,25 +29,36 @@ console.log('✅ Connected to QI MongoDB Database (localhost)');
 
 // CORS configuration
 const allowedOrigins = [
+  // Local development
   'http://localhost:4321',
   'http://localhost:5173',
   'http://localhost:5001',
   'http://localhost:10000',
-  'http://192.168.0.22:4321', // Your machine's IP for iPhone access
-  'http://192.168.0.22:5001', // Your machine's IP for backend
+  'http://localhost:3000',
+  'http://192.168.0.22:4321',
+  'http://192.168.0.22:5001',
+
+  // Production domains
   'https://quimicaindustrialpe.com',
   'https://www.quimicaindustrialpe.com',
   'https://quimica.pe',
   'https://www.quimica.pe',
+
+  // Vercel deployments
+  'https://*.vercel.app',
+  'https://quimicaindustrial-frontend.vercel.app',
+  'https://oregonchem-dashboard.vercel.app',
+
+  // Render deployments
+  'https://*.onrender.com',
   'https://oregonchem-backend.onrender.com',
   'https://oregonchem-dashboard.onrender.com',
-  'https://quimicaindustrialpe.vercel.app',
-  'https://*.onrender.com',  // Allow all Render.com subdomains
-  'http://localhost:3000',
+
+  // Other
   'https://oregonchem.tech',
   'https://www.oregonchem.tech',
-  'https://*.github.io',  // Allow all GitHub Pages domains
-  'https://ggmj92.github.io'  // Specific GitHub Pages domain
+  'https://*.github.io',
+  'https://ggmj92.github.io'
 ];
 
 // Enhanced CORS configuration
