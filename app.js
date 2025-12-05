@@ -11,6 +11,7 @@ dotenv.config();
 // Import routes and configurations
 const routes = require("./src/routes/apiRoutes");
 const authRouter = require("./src/routes/authRoutes");
+const qiRoutes = require("./src/routes/qiRoutes");
 
 // const analyticsRoutes = require('./src/routes/analyticsRoutes'); // Temporarily disabled due to Firebase config issues
 const aiImageRoutes = require('./src/routes/aiImageRoutes');
@@ -29,11 +30,11 @@ console.log('Firebase Project ID:', process.env.FIREBASE_PROJECT_ID ? 'Set' : 'N
 
 // Database connection
 mongoose.connect(process.env.MONGODB_URI_PROD)
-.then(() => console.log('Connected to MongoDB Production Database'))
-.catch(err => {
-  console.error('MongoDB connection error:', err);
-  process.exit(1); // Exit if database connection fails
-});
+  .then(() => console.log('Connected to MongoDB Production Database'))
+  .catch(err => {
+    console.error('MongoDB connection error:', err);
+    process.exit(1); // Exit if database connection fails
+  });
 
 // CORS configuration
 const allowedOrigins = [
@@ -63,19 +64,19 @@ app.use(cors({
   origin: function (origin, callback) {
     // Log the incoming request origin
     console.log('Incoming request from origin:', origin);
-    
+
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) {
       console.log('Allowing request with no origin');
       return callback(null, true);
     }
-    
+
     // Special handling for dashboard domain
     if (origin === 'https://oregonchem-dashboard.onrender.com') {
       console.log('Allowing request from dashboard');
       return callback(null, true);
     }
-    
+
     // Check if the origin is in the allowed list
     if (allowedOrigins.some(allowedOrigin => {
       if (allowedOrigin.includes('*')) {
@@ -88,13 +89,13 @@ app.use(cors({
       console.log('Allowing request from:', origin);
       return callback(null, true);
     }
-    
+
     // For development, allow all origins
     if (process.env.NODE_ENV === 'development') {
       console.log('Development mode: allowing all origins');
       return callback(null, true);
     }
-    
+
     console.log('Blocking request from:', origin);
     return callback(new Error('Not allowed by CORS'));
   },
@@ -109,16 +110,16 @@ app.use(cors({
 app.options('*', cors());
 
 // Middleware - Configure body parser with larger limits for base64 images
-app.use(bodyParser.json({ 
+app.use(bodyParser.json({
   limit: '50mb',
   type: 'application/json'
 }));
-app.use(bodyParser.urlencoded({ 
-  extended: true, 
+app.use(bodyParser.urlencoded({
+  extended: true,
   limit: '50mb',
   type: 'application/x-www-form-urlencoded'
 }));
-app.use(bodyParser.text({ 
+app.use(bodyParser.text({
   limit: '50mb',
   type: 'text/plain'
 }));
@@ -133,10 +134,10 @@ app.use((req, res, next) => {
 app.get('/api/health', async (req, res) => {
   try {
     console.log('Health check requested from origin:', req.headers.origin);
-    
+
     // Check MongoDB connection
     const mongoStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
-    
+
     // Check Firebase Admin SDK
     let firebaseStatus = 'disconnected';
     try {
@@ -193,6 +194,7 @@ app.get('/api/test-auth', (req, res) => {
 // Routes
 app.use("/api", routes);
 app.use("/auth", authRouter);
+app.use("/api/qi", qiRoutes); // QI MongoDB routes
 app.post('/api/quotes', createQuote);
 app.get('/favicon.ico', (req, res) => res.status(204));
 // app.use('/api/analytics', analyticsRoutes); // Temporarily disabled due to Firebase config issues
