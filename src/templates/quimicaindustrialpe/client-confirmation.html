@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>Confirmación de Cotización</title>
@@ -13,25 +14,29 @@
             padding: 20px;
             background-color: #f8f9fa;
         }
+
         .header {
             text-align: center;
             margin-bottom: 30px;
             padding: 20px;
             background-color: #ffffff;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
+
         .logo {
             max-width: 180px;
             margin-bottom: 15px;
         }
+
         .section {
             margin-bottom: 25px;
             padding: 20px;
             background-color: #ffffff;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
+
         .section-title {
             font-size: 18px;
             font-weight: bold;
@@ -40,6 +45,7 @@
             border-bottom: 2px solid #e74c3c;
             padding-bottom: 8px;
         }
+
         .product-item {
             border: 1px solid #e0e0e0;
             padding: 15px;
@@ -48,10 +54,12 @@
             background-color: #f8f9fa;
             transition: all 0.3s ease;
         }
+
         .product-item:hover {
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             transform: translateY(-2px);
         }
+
         .footer {
             margin-top: 30px;
             text-align: center;
@@ -60,21 +68,25 @@
             padding: 20px;
             background-color: #ffffff;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
+
         h1 {
             color: #2c3e50;
             font-size: 24px;
             margin-bottom: 10px;
         }
+
         p {
             margin-bottom: 10px;
         }
+
         strong {
             color: #2c3e50;
         }
     </style>
 </head>
+
 <body>
     <div class="header">
         <img src="{{logo}}" alt="{{companyName}}" class="logo">
@@ -82,7 +94,8 @@
     </div>
 
     <div class="section">
-        <p>Gracias por contactar a {{companyName}}. Hemos recibido su solicitud de cotización y la estamos procesando.</p>
+        <p>Gracias por contactar a {{companyName}}. Hemos recibido su solicitud de cotización y la estamos procesando.
+        </p>
     </div>
 
     <div class="section">
@@ -104,7 +117,8 @@
     {{/if}}
 
     <div class="section">
-        <p>Nuestro equipo se pondrá en contacto con usted a la brevedad para proporcionarle más información sobre su cotización.</p>
+        <p>Nuestro equipo se pondrá en contacto con usted a la brevedad para proporcionarle más información sobre su
+            cotización.</p>
         <p>Si tiene alguna pregunta adicional, no dude en contactarnos.</p>
     </div>
 
@@ -113,4 +127,5 @@
         <p>&copy; {{companyName}} - Todos los derechos reservados</p>
     </div>
 </body>
-</html> 
+
+</html>
