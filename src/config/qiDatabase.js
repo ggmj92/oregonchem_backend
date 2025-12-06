@@ -1,7 +1,9 @@
 const mongoose = require('mongoose');
 
 // Create a separate connection for the QI database
-const qiConnection = mongoose.createConnection(process.env.MONGODB_URI_QI || 'mongodb://localhost:27017/qi');
+// Use MONGODB_URI_PROD in production, MONGODB_URI_QI or localhost in development
+const mongoUri = process.env.MONGODB_URI_PROD || process.env.MONGODB_URI_QI || 'mongodb://localhost:27017/qi';
+const qiConnection = mongoose.createConnection(mongoUri);
 
 qiConnection.on('connected', () => {
     console.log('✅ Connected to QI MongoDB Database (localhost)');
