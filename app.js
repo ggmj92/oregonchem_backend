@@ -213,15 +213,20 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start the server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Server accessible at:`);
-  console.log(`- Local: http://localhost:${PORT}`);
-  console.log(`- Network: http://192.168.0.22:${PORT}`);
-  console.log('Environment variables check:');
-  console.log('- NODE_ENV:', process.env.NODE_ENV);
-  console.log('- PORT:', PORT);
-  console.log('- MONGODB_URI_PROD:', process.env.MONGODB_URI_PROD ? 'Set' : 'Not set');
-  console.log('- FIREBASE_PROJECT_ID:', process.env.FIREBASE_PROJECT_ID ? 'Set' : 'Not set');
-});
+// Start the server (only in non-serverless environments)
+if (process.env.VERCEL !== '1') {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Server accessible at:`);
+    console.log(`- Local: http://localhost:${PORT}`);
+    console.log(`- Network: http://192.168.0.22:${PORT}`);
+    console.log('Environment variables check:');
+    console.log('- NODE_ENV:', process.env.NODE_ENV);
+    console.log('- PORT:', PORT);
+    console.log('- MONGODB_URI_PROD:', process.env.MONGODB_URI_PROD ? 'Set' : 'Not set');
+    console.log('- FIREBASE_PROJECT_ID:', process.env.FIREBASE_PROJECT_ID ? 'Set' : 'Not set');
+  });
+}
+
+// Export for Vercel serverless
+module.exports = app;
