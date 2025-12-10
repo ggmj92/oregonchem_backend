@@ -29,6 +29,8 @@ src/config/serviceAccountKey(old-backup).json
 src/config/analyticsServiceAccountKey.json
 src/routes/credentials.json
 src/utils/token.json
+*-firebase-adminsdk-*.json
+oregonchem-pe-firebase-adminsdk-*.json
 
 # Coverage directory used by testing tools
 coverage/

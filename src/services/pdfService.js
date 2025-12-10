@@ -7,7 +7,7 @@ const defaultSiteConfig = {
     name: 'Química Industrial Perú',
     address: 'Av. Industrial 123, Lima, Perú',
     phone: '+51 1 123 4567',
-    email: 'contacto@quimicaindustrialpe.com',
+    email: 'contacto@quimicaindustrial.pe',
     logo: path.join(__dirname, '../../public/qiLogo.png')
 };
 
@@ -79,16 +79,32 @@ const generatePDF = async (quote) => {
                 .text('INFORMACIÓN DEL CLIENTE', { align: 'left' })
                 .moveDown();
 
+            const clientTypeLabels = {
+                'natural': 'Persona Natural',
+                'empresa': 'Empresa',
+                'natural-empresa': 'Persona con Empresa'
+            };
+
             doc
                 .fontSize(12)
                 .fillColor('#2c3e50')
-                .text(`Nombre: ${quote.client.name} ${quote.client.lastname}`, { align: 'left' })
-                .text(`Email: ${quote.client.email}`, { align: 'left' })
-                .text(`Teléfono: ${quote.client.phone}`, { align: 'left' });
+                .text(`Tipo de Cliente: ${clientTypeLabels[quote.clientType] || quote.clientType}`, { align: 'left' })
+                .text(`Nombre: ${quote.firstName} ${quote.lastName}`, { align: 'left' })
+                .text(`DNI: ${quote.dni}`, { align: 'left' })
+                .text(`Email: ${quote.email}`, { align: 'left' })
+                .text(`Teléfono: ${quote.phone}`, { align: 'left' });
 
-            if (quote.client.company) doc.text(`Empresa: ${quote.client.company}`, { align: 'left' });
-            if (quote.client.ruc) doc.text(`RUC: ${quote.client.ruc}`, { align: 'left' });
-            if (quote.contactMethod) doc.text(`Método de contacto preferido: ${quote.contactMethod}`, { align: 'left' });
+            if (quote.companyName) doc.text(`Razón Social: ${quote.companyName}`, { align: 'left' });
+            if (quote.ruc) doc.text(`RUC: ${quote.ruc}`, { align: 'left' });
+
+            // Contact preferences
+            const contactPrefs = [];
+            if (quote.contactPreferences.email) contactPrefs.push('Email');
+            if (quote.contactPreferences.whatsapp) contactPrefs.push('WhatsApp');
+            if (quote.contactPreferences.phone) contactPrefs.push('Llamada');
+            if (contactPrefs.length > 0) {
+                doc.text(`Método de contacto preferido: ${contactPrefs.join(', ')}`, { align: 'left' });
+            }
 
             // === Products Section ===
             doc
@@ -111,16 +127,37 @@ const generatePDF = async (quote) => {
                 .text('Frecuencia', 450, startY);
 
             // Table rows
+            const frequencyLabels = {
+                'unica': 'Única compra',
+                'quincenal': 'Quincenal',
+                'mensual': 'Mensual',
+                'bimestral': 'Bimestral',
+                'trimestral': 'Trimestral'
+            };
+
             let y = startY + 20;
             quote.products.forEach(product => {
                 doc
                     .fontSize(10)
-                    .text(product.name, 50, y)
-                    .text(product.presentation, 200, y)
-                    .text(`${product.quantity} ${product.unit}`, 350, y)
-                    .text(product.frequency, 450, y);
-                y += 20;
+                    .text(product.productName || 'N/A', 50, y, { width: 140 })
+                    .text(product.presentationLabel || 'N/A', 200, y, { width: 140 })
+                    .text(product.quantity.toString(), 350, y)
+                    .text(frequencyLabels[product.frequency] || product.frequency, 450, y);
+                y += 25;
             });
+
+            // Observations if any
+            if (quote.observations) {
+                doc
+                    .moveDown(2)
+                    .fontSize(14)
+                    .fillColor('#e74c3c')
+                    .text('OBSERVACIONES', { align: 'left' })
+                    .moveDown()
+                    .fontSize(10)
+                    .fillColor('#2c3e50')
+                    .text(quote.observations, { align: 'left' });
+            }
 
             // Finish writing the document
             doc.end();
