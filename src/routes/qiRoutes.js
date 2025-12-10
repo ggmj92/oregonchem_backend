@@ -6,6 +6,7 @@ const ProductController = require('../controllers/QI/ProductController');
 const CategoryController = require('../controllers/QI/CategoryController');
 const PresentationController = require('../controllers/QI/PresentationController');
 const BannerController = require('../controllers/QI/BannerController');
+const QuoteController = require('../controllers/QI/QuoteController');
 
 // ============================================
 // PRODUCT ROUTES
@@ -71,5 +72,17 @@ router.post('/banners', BannerController.createBanner);
 router.put('/banners/:id', BannerController.updateBanner);
 router.delete('/banners/:id', BannerController.deleteBanner);
 router.patch('/banners/:id/toggle', BannerController.toggleActive);
+
+// ============================================
+// QUOTE ROUTES
+// ============================================
+
+// Public routes
+router.post('/quotes', QuoteController.createQuote);
+router.get('/quotes', QuoteController.getQuotes);
+router.get('/quotes/:id', QuoteController.getQuote);
+
+// Admin routes
+router.patch('/quotes/:id/status', QuoteController.updateQuoteStatus);
 
 module.exports = router;

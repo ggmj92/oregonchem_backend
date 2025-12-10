@@ -1,27 +1,110 @@
 const Quote = require('../../models/QI/Quote');
+const Product = require('../../models/QI/Product');
+const generatePDF = require('../../services/pdfService');
+const { sendQuoteEmail } = require('../../services/emailService');
 
 // Create a new quote
 exports.createQuote = async (req, res) => {
     try {
+        // Extract and validate data
+        const {
+            clientType,
+            firstName,
+            lastName,
+            dni,
+            phone,
+            email,
+            companyName,
+            ruc,
+            products,
+            contactPreferences,
+            observations
+        } = req.body;
+
+        // Enrich products with full product names
+        const enrichedProducts = await Promise.all(
+            products.map(async (product) => {
+                try {
+                    const productDoc = await Product.findById(product.productId).lean();
+                    return {
+                        productId: product.productId,
+                        productName: productDoc ? productDoc.name : 'Producto desconocido',
+                        presentationId: product.presentationId || null,
+                        presentationLabel: product.presentationLabel || 'N/A',
+                        quantity: parseInt(product.quantity),
+                        frequency: product.frequency
+                    };
+                } catch (err) {
+                    console.error('Error fetching product:', err);
+                    return {
+                        productId: product.productId,
+                        productName: 'Producto desconocido',
+                        presentationId: product.presentationId || null,
+                        presentationLabel: product.presentationLabel || 'N/A',
+                        quantity: parseInt(product.quantity),
+                        frequency: product.frequency
+                    };
+                }
+            })
+        );
+
         const quoteData = {
-            ...req.body,
+            clientType,
+            firstName,
+            lastName,
+            dni,
+            phone,
+            email,
+            companyName: companyName || null,
+            ruc: ruc || null,
+            products: enrichedProducts,
+            contactPreferences: {
+                email: contactPreferences?.email || false,
+                whatsapp: contactPreferences?.whatsapp || false,
+                phone: contactPreferences?.phone || false
+            },
+            observations: observations || '',
             status: 'pending',
-            createdAt: new Date()
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
         };
 
         const quote = new Quote(quoteData);
         await quote.save();
 
+        // Generate PDF
+        let pdfBuffer;
+        try {
+            pdfBuffer = await generatePDF(quote);
+        } catch (pdfError) {
+            console.error('Error generating PDF:', pdfError);
+            // Continue without PDF if generation fails
+        }
+
+        // Send emails
+        try {
+            if (pdfBuffer) {
+                await sendQuoteEmail(quote, pdfBuffer);
+            }
+        } catch (emailError) {
+            console.error('Error sending emails:', emailError);
+            // Continue even if email fails - quote is saved
+        }
+
         res.status(201).json({
             success: true,
-            data: quote,
-            message: 'Cotización creada exitosamente'
+            data: {
+                id: quote._id,
+                status: quote.status,
+                createdAt: quote.createdAt
+            },
+            message: 'Cotización creada exitosamente. Recibirá un correo de confirmación pronto.'
         });
     } catch (error) {
         console.error('Error creating quote:', error);
         res.status(500).json({
             success: false,
-            error: error.message
+            error: error.message || 'Error al crear la cotización'
         });
     }
 };

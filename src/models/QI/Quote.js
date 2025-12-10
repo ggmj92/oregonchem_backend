@@ -3,11 +3,20 @@ const qiConnection = require('../../config/qiDatabase');
 
 const QuoteSchema = new mongoose.Schema({
     // Customer information
-    name: {
+    clientType: {
+        type: String,
+        enum: ['natural', 'empresa', 'natural-empresa'],
+        required: true
+    },
+    firstName: {
         type: String,
         required: true
     },
-    email: {
+    lastName: {
+        type: String,
+        required: true
+    },
+    dni: {
         type: String,
         required: true
     },
@@ -15,7 +24,13 @@ const QuoteSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    company: String,
+    email: {
+        type: String,
+        required: true
+    },
+    // Company fields (for empresa and natural-empresa)
+    companyName: String,
+    ruc: String,
 
     // Quote details
     products: [{
@@ -24,12 +39,28 @@ const QuoteSchema = new mongoose.Schema({
             ref: 'Product'
         },
         productName: String,
-        presentation: String,
-        quantity: Number,
-        notes: String
+        presentationId: String,
+        presentationLabel: String,
+        quantity: {
+            type: Number,
+            required: true
+        },
+        frequency: {
+            type: String,
+            enum: ['unica', 'quincenal', 'mensual', 'bimestral', 'trimestral'],
+            required: true
+        }
     }],
 
-    message: String,
+    // Contact preferences
+    contactPreferences: {
+        email: { type: Boolean, default: false },
+        whatsapp: { type: Boolean, default: false },
+        phone: { type: Boolean, default: false }
+    },
+
+    // Additional notes
+    observations: String,
 
     // Status
     status: {

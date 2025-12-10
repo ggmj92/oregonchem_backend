@@ -26,34 +26,61 @@ const clientTemplate = loadTemplate('quimicaindustrialpe/client-confirmation.htm
 
 const sendQuoteEmail = async (quote, pdfBuffer) => {
     try {
+        const frequencyLabels = {
+            'unica': 'Única compra',
+            'quincenal': 'Quincenal',
+            'mensual': 'Mensual',
+            'bimestral': 'Bimestral',
+            'trimestral': 'Trimestral'
+        };
+
+        const clientTypeLabels = {
+            'natural': 'Persona Natural',
+            'empresa': 'Empresa',
+            'natural-empresa': 'Persona con Empresa'
+        };
+
         // Format products for email template
         const formattedProducts = quote.products.map((product, index) => `
-            <div class="product-item">
-                <p><strong>Producto ${index + 1}:</strong> ${product.name}</p>
-                <p><strong>Presentación:</strong> ${product.presentation || '-'}</p>
-                <p><strong>Cantidad:</strong> ${product.quantity} ${product.unit}</p>
-                <p><strong>Frecuencia:</strong> ${product.frequency || '-'}</p>
+            <div class="product-item" style="margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 5px;">
+                <p style="margin: 5px 0;"><strong>Producto ${index + 1}:</strong> ${product.productName}</p>
+                <p style="margin: 5px 0;"><strong>Presentación:</strong> ${product.presentationLabel || 'N/A'}</p>
+                <p style="margin: 5px 0;"><strong>Cantidad:</strong> ${product.quantity}</p>
+                <p style="margin: 5px 0;"><strong>Frecuencia:</strong> ${frequencyLabels[product.frequency] || product.frequency}</p>
             </div>
         `).join('');
 
+        // Format contact preferences
+        const contactPrefs = [];
+        if (quote.contactPreferences.email) contactPrefs.push('Email');
+        if (quote.contactPreferences.whatsapp) contactPrefs.push('WhatsApp');
+        if (quote.contactPreferences.phone) contactPrefs.push('Llamada');
+
+        const clientName = `${quote.firstName} ${quote.lastName}`;
+
         // Send email to company
         await transporter.sendMail({
-            from: process.env.SMTP_FROM,
-            to: process.env.COMPANY_EMAIL,
-            subject: `Nueva Cotización - ${quote.client.name}`,
+            from: process.env.SMTP_FROM || 'noreply@quimicaindustrial.pe',
+            to: 'contacto@quimicaindustrial.pe',
+            subject: `Nueva Cotización - ${clientName}`,
             html: companyTemplate({
-                logo: process.env.COMPANY_LOGO_URL,
+                logo: process.env.COMPANY_LOGO_URL || 'https://quimicaindustrial.pe/logo.png',
                 quoteId: quote._id,
                 date: new Date(quote.createdAt).toLocaleDateString('es-PE'),
-                clientName: quote.client.name + ' ' + quote.client.lastname,
-                clientInfo: quote.client,
-                contactMethod: quote.contactMethod,
+                clientName: clientName,
+                clientType: clientTypeLabels[quote.clientType] || quote.clientType,
+                dni: quote.dni,
+                email: quote.email,
+                phone: quote.phone,
+                companyName: quote.companyName || '-',
+                ruc: quote.ruc || '-',
+                contactMethod: contactPrefs.join(', '),
                 products: formattedProducts,
-                observations: quote.observations,
-                companyName: process.env.COMPANY_NAME,
-                companyAddress: process.env.COMPANY_ADDRESS,
-                companyPhone: process.env.COMPANY_PHONE,
-                companyEmail: process.env.COMPANY_EMAIL
+                observations: quote.observations || 'Sin observaciones',
+                companyName: 'Química Industrial Perú',
+                companyAddress: 'Lima, Perú',
+                companyPhone: '+51 1 234 5678',
+                companyEmail: 'contacto@quimicaindustrial.pe'
             }),
             attachments: [
                 {
@@ -65,19 +92,20 @@ const sendQuoteEmail = async (quote, pdfBuffer) => {
 
         // Send confirmation email to client
         await transporter.sendMail({
-            from: process.env.SMTP_FROM,
-            to: quote.client.email,
+            from: process.env.SMTP_FROM || 'noreply@quimicaindustrial.pe',
+            to: quote.email,
             subject: 'Confirmación de Cotización - Química Industrial Perú',
             html: clientTemplate({
-                logo: process.env.COMPANY_LOGO_URL,
+                logo: process.env.COMPANY_LOGO_URL || 'https://quimicaindustrial.pe/logo.png',
+                clientName: clientName,
                 quoteId: quote._id,
                 date: new Date(quote.createdAt).toLocaleDateString('es-PE'),
                 products: formattedProducts,
-                observations: quote.observations,
-                companyName: process.env.COMPANY_NAME,
-                companyAddress: process.env.COMPANY_ADDRESS,
-                companyPhone: process.env.COMPANY_PHONE,
-                companyEmail: process.env.COMPANY_EMAIL
+                observations: quote.observations || '',
+                companyName: 'Química Industrial Perú',
+                companyAddress: 'Lima, Perú',
+                companyPhone: '+51 1 234 5678',
+                companyEmail: 'contacto@quimicaindustrial.pe'
             })
         });
 

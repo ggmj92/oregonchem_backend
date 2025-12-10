@@ -48,6 +48,7 @@ const allowedOrigins = [
   'https://www.quimicaindustrialpe.com',
   'https://quimica.pe',
   'https://www.quimica.pe',
+  'https://dashboard.quimica.pe',
 
   // Vercel deployments
   'https://*.vercel.app',
