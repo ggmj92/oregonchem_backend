@@ -31,9 +31,14 @@ console.log('MongoDB will connect on first request');
 const allowedOrigins = [
   // Local development
   'http://localhost:4321',
+  'http://localhost:4322',
+  'http://localhost:4323',
+  'http://localhost:4324',
   'http://localhost:5173',
   'http://localhost:5001',
   'http://localhost:10000',
+  'http://localhost:10001',
+  'http://localhost:10002',
   'http://localhost:3000',
   'http://192.168.0.22:4321',
   'http://192.168.0.22:5001',
