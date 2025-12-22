@@ -21,8 +21,72 @@ const loadTemplate = (templateName) => {
     return handlebars.compile(template);
 };
 
+const sendContactEmail = async (contact) => {
+    try {
+        const { companyTo, clientTo } = getContactRecipients(contact);
+
+        const fromAddress = process.env.SMTP_FROM || 'noreply@quimicaindustrial.pe';
+
+        await transporter.sendMail({
+            from: fromAddress,
+            to: companyTo,
+            replyTo: contact.email,
+            subject: `Nuevo mensaje de contacto - ${contact.name}`,
+            html: `
+                <h2>Nuevo mensaje de contacto</h2>
+                <p><strong>Nombre:</strong> ${contact.name}</p>
+                <p><strong>Email:</strong> ${contact.email}</p>
+                <p><strong>Teléfono:</strong> ${contact.phone || '-'}</p>
+                <p><strong>Mensaje:</strong></p>
+                <p>${String(contact.message).replace(/\n/g, '<br/>')}</p>
+            `
+        });
+
+        await transporter.sendMail({
+            from: fromAddress,
+            to: clientTo,
+            subject: 'Confirmación de contacto - Química Industrial Perú',
+            html: `
+                <p>Hola ${contact.name},</p>
+                <p>Gracias por contactarnos. Hemos recibido tu mensaje y te responderemos pronto.</p>
+                <hr/>
+                <p><strong>Tu mensaje:</strong></p>
+                <p>${String(contact.message).replace(/\n/g, '<br/>')}</p>
+                <hr/>
+                <p>Química Industrial Perú</p>
+                <p>contacto@quimicaindustrial.pe</p>
+            `
+        });
+
+        return true;
+    } catch (error) {
+        console.error('Error sending contact emails:', error);
+        throw error;
+    }
+};
+
 const companyTemplate = loadTemplate('quimicaindustrialpe/company-notification.html');
 const clientTemplate = loadTemplate('quimicaindustrialpe/client-confirmation.html');
+
+const getEmailRecipients = (quote) => {
+    const defaultCompanyTo = 'contacto@quimicaindustrial.pe';
+    const redirectAllTo = process.env.EMAIL_REDIRECT_ALL_TO;
+
+    const companyTo = redirectAllTo || process.env.QUOTE_COMPANY_TO || defaultCompanyTo;
+    const clientTo = redirectAllTo || process.env.QUOTE_CLIENT_TO || quote.email;
+
+    return { companyTo, clientTo };
+};
+
+function getContactRecipients(contact) {
+    const defaultCompanyTo = 'contacto@quimicaindustrial.pe';
+    const redirectAllTo = process.env.EMAIL_REDIRECT_ALL_TO;
+
+    const companyTo = redirectAllTo || process.env.CONTACT_COMPANY_TO || defaultCompanyTo;
+    const clientTo = redirectAllTo || process.env.CONTACT_CLIENT_TO || contact.email;
+
+    return { companyTo, clientTo };
+}
 
 const sendQuoteEmail = async (quote, pdfBuffer) => {
     try {
@@ -58,10 +122,12 @@ const sendQuoteEmail = async (quote, pdfBuffer) => {
 
         const clientName = `${quote.firstName} ${quote.lastName}`;
 
+        const { companyTo, clientTo } = getEmailRecipients(quote);
+
         // Send email to company
         await transporter.sendMail({
             from: process.env.SMTP_FROM || 'noreply@quimicaindustrial.pe',
-            to: 'contacto@quimicaindustrial.pe',
+            to: companyTo,
             subject: `Nueva Cotización - ${clientName}`,
             html: companyTemplate({
                 logo: process.env.COMPANY_LOGO_URL || 'https://quimicaindustrial.pe/logo.png',
@@ -93,7 +159,7 @@ const sendQuoteEmail = async (quote, pdfBuffer) => {
         // Send confirmation email to client
         await transporter.sendMail({
             from: process.env.SMTP_FROM || 'noreply@quimicaindustrial.pe',
-            to: quote.email,
+            to: clientTo,
             subject: 'Confirmación de Cotización - Química Industrial Perú',
             html: clientTemplate({
                 logo: process.env.COMPANY_LOGO_URL || 'https://quimicaindustrial.pe/logo.png',
@@ -117,5 +183,6 @@ const sendQuoteEmail = async (quote, pdfBuffer) => {
 };
 
 module.exports = {
-    sendQuoteEmail
-}; 
+    sendQuoteEmail,
+    sendContactEmail
+};
