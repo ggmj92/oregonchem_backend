@@ -44,6 +44,8 @@ const allowedOrigins = [
   'http://192.168.0.22:5001',
 
   // Production domains
+  'https://quimicaindustrial.pe',
+  'https://www.quimicaindustrial.pe',
   'https://quimicaindustrialpe.com',
   'https://www.quimicaindustrialpe.com',
   'https://quimica.pe',
