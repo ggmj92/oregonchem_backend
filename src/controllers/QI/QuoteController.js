@@ -18,8 +18,11 @@ exports.createQuote = async (req, res) => {
             ruc,
             products,
             contactPreferences,
-            observations
+            observations,
+            comments
         } = req.body;
+
+        const finalObservations = (observations ?? comments ?? '').toString();
 
         // Enrich products with full product names
         const enrichedProducts = await Promise.all(
@@ -28,7 +31,7 @@ exports.createQuote = async (req, res) => {
                     const productDoc = await Product.findById(product.productId).lean();
                     return {
                         productId: product.productId,
-                        productName: productDoc ? productDoc.name : 'Producto desconocido',
+                        productName: productDoc ? (productDoc.title || productDoc.name) : 'Producto desconocido',
                         presentationId: product.presentationId || null,
                         presentationLabel: product.presentationLabel || 'N/A',
                         quantity: parseInt(product.quantity),
@@ -63,7 +66,7 @@ exports.createQuote = async (req, res) => {
                 whatsapp: contactPreferences?.whatsapp || false,
                 phone: contactPreferences?.phone || false
             },
-            observations: observations || '',
+            observations: finalObservations || '',
             status: 'pending',
             ipAddress: req.ip,
             userAgent: req.get('user-agent')

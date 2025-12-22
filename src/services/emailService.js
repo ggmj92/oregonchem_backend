@@ -68,9 +68,55 @@ const sendContactEmail = async (contact) => {
 const companyTemplate = loadTemplate('quimicaindustrialpe/company-notification.html');
 const clientTemplate = loadTemplate('quimicaindustrialpe/client-confirmation.html');
 
+const isEmailRedirectEnabled = () => {
+    const redirectAllTo = process.env.EMAIL_REDIRECT_ALL_TO;
+    if (!redirectAllTo) return false;
+
+    const nodeEnv = String(process.env.NODE_ENV || '').toLowerCase();
+    const isProd = nodeEnv === 'production';
+    if (!isProd) return true;
+
+    return String(process.env.ALLOW_EMAIL_REDIRECT_IN_PROD || '').toLowerCase() === 'true';
+};
+
+const resolveLogoBuffer = async () => {
+    const logoPath = process.env.COMPANY_LOGO_PATH;
+    const logoUrl = process.env.COMPANY_LOGO_URL;
+    const fallbackPath = path.join(__dirname, '../../public/qiLogo.png');
+
+    try {
+        if (logoPath) {
+            return fs.readFileSync(logoPath);
+        }
+    } catch (error) {
+        console.warn('Email logo file not found:', error.message);
+    }
+
+    try {
+        if (logoUrl && /^https?:\/\//i.test(logoUrl)) {
+            const res = await fetch(logoUrl);
+            if (res.ok) {
+                const arr = await res.arrayBuffer();
+                return Buffer.from(arr);
+            }
+        }
+    } catch (error) {
+        console.warn('Email logo URL not accessible:', error.message);
+    }
+
+    try {
+        return fs.readFileSync(fallbackPath);
+    } catch (error) {
+        console.warn('Email fallback logo not found:', error.message);
+    }
+
+    return null;
+};
+
 const getEmailRecipients = (quote) => {
     const defaultCompanyTo = 'contacto@quimicaindustrial.pe';
-    const redirectAllTo = process.env.EMAIL_REDIRECT_ALL_TO;
+
+    const redirectAllTo = isEmailRedirectEnabled() ? process.env.EMAIL_REDIRECT_ALL_TO : undefined;
 
     const companyTo = redirectAllTo || process.env.QUOTE_COMPANY_TO || defaultCompanyTo;
     const clientTo = redirectAllTo || process.env.QUOTE_CLIENT_TO || quote.email;
@@ -80,7 +126,8 @@ const getEmailRecipients = (quote) => {
 
 function getContactRecipients(contact) {
     const defaultCompanyTo = 'contacto@quimicaindustrial.pe';
-    const redirectAllTo = process.env.EMAIL_REDIRECT_ALL_TO;
+
+    const redirectAllTo = isEmailRedirectEnabled() ? process.env.EMAIL_REDIRECT_ALL_TO : undefined;
 
     const companyTo = redirectAllTo || process.env.CONTACT_COMPANY_TO || defaultCompanyTo;
     const clientTo = redirectAllTo || process.env.CONTACT_CLIENT_TO || contact.email;
@@ -122,7 +169,27 @@ const sendQuoteEmail = async (quote, pdfBuffer) => {
 
         const clientName = `${quote.firstName} ${quote.lastName}`;
 
+        const clientInfo = {
+            name: quote.firstName,
+            lastname: quote.lastName,
+            email: quote.email,
+            phone: quote.phone,
+            company: quote.companyName || '',
+            ruc: quote.ruc || ''
+        };
+
+        const observationsText = String(quote.observations || '').trim();
+
+        const logoBuffer = await resolveLogoBuffer();
+        const logoCid = 'qi-logo';
+        const logoSrc = logoBuffer ? `cid:${logoCid}` : (process.env.COMPANY_LOGO_URL || 'https://quimicaindustrial.pe/logo.png');
+
         const { companyTo, clientTo } = getEmailRecipients(quote);
+
+        const companyName = process.env.COMPANY_NAME || 'Química Industrial Perú';
+        const companyAddress = process.env.COMPANY_ADDRESS || 'Lima, Perú';
+        const companyPhone = process.env.COMPANY_PHONE || '+51 1 234 5678';
+        const companyEmail = process.env.COMPANY_EMAIL || 'contacto@quimicaindustrial.pe';
 
         // Send email to company
         await transporter.sendMail({
@@ -130,25 +197,24 @@ const sendQuoteEmail = async (quote, pdfBuffer) => {
             to: companyTo,
             subject: `Nueva Cotización - ${clientName}`,
             html: companyTemplate({
-                logo: process.env.COMPANY_LOGO_URL || 'https://quimicaindustrial.pe/logo.png',
+                logo: logoSrc,
                 quoteId: quote._id,
                 date: new Date(quote.createdAt).toLocaleDateString('es-PE'),
-                clientName: clientName,
-                clientType: clientTypeLabels[quote.clientType] || quote.clientType,
-                dni: quote.dni,
-                email: quote.email,
-                phone: quote.phone,
-                companyName: quote.companyName || '-',
-                ruc: quote.ruc || '-',
+                clientInfo,
                 contactMethod: contactPrefs.join(', '),
                 products: formattedProducts,
-                observations: quote.observations || 'Sin observaciones',
-                companyName: 'Química Industrial Perú',
-                companyAddress: 'Lima, Perú',
-                companyPhone: '+51 1 234 5678',
-                companyEmail: 'contacto@quimicaindustrial.pe'
+                observations: observationsText,
+                companyName,
+                companyAddress,
+                companyPhone,
+                companyEmail
             }),
             attachments: [
+                ...(logoBuffer ? [{
+                    filename: 'qi-logo.png',
+                    content: logoBuffer,
+                    cid: logoCid
+                }] : []),
                 {
                     filename: `cotizacion-${quote._id}.pdf`,
                     content: pdfBuffer
@@ -162,17 +228,24 @@ const sendQuoteEmail = async (quote, pdfBuffer) => {
             to: clientTo,
             subject: 'Confirmación de Cotización - Química Industrial Perú',
             html: clientTemplate({
-                logo: process.env.COMPANY_LOGO_URL || 'https://quimicaindustrial.pe/logo.png',
+                logo: logoSrc,
                 clientName: clientName,
                 quoteId: quote._id,
                 date: new Date(quote.createdAt).toLocaleDateString('es-PE'),
                 products: formattedProducts,
-                observations: quote.observations || '',
-                companyName: 'Química Industrial Perú',
-                companyAddress: 'Lima, Perú',
-                companyPhone: '+51 1 234 5678',
-                companyEmail: 'contacto@quimicaindustrial.pe'
-            })
+                observations: observationsText,
+                companyName,
+                companyAddress,
+                companyPhone,
+                companyEmail
+            }),
+            attachments: [
+                ...(logoBuffer ? [{
+                    filename: 'qi-logo.png',
+                    content: logoBuffer,
+                    cid: logoCid
+                }] : [])
+            ]
         });
 
         return true;
