@@ -14,6 +14,15 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+// Log SMTP configuration (without password)
+console.log('SMTP Configuration:', {
+    host: process.env.SMTP_HOST,
+    port: process.env.SMTP_PORT,
+    secure: process.env.SMTP_SECURE === 'true',
+    user: process.env.SMTP_USER,
+    from: process.env.SMTP_FROM
+});
+
 // Load email templates
 const loadTemplate = (templateName) => {
     const templatePath = path.join(__dirname, '../templates', templateName);
