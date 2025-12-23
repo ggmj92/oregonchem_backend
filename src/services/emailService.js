@@ -74,8 +74,23 @@ const sendContactEmail = async (contact) => {
     }
 };
 
-const companyTemplate = loadTemplate('quimicaindustrialpe/company-notification.html');
-const clientTemplate = loadTemplate('quimicaindustrialpe/client-confirmation.html');
+// Lazy load templates to avoid crashes on module initialization
+let companyTemplate;
+let clientTemplate;
+
+const getCompanyTemplate = () => {
+    if (!companyTemplate) {
+        companyTemplate = loadTemplate('quimicaindustrialpe/company-notification.html');
+    }
+    return companyTemplate;
+};
+
+const getClientTemplate = () => {
+    if (!clientTemplate) {
+        clientTemplate = loadTemplate('quimicaindustrialpe/client-confirmation.html');
+    }
+    return clientTemplate;
+};
 
 const isEmailRedirectEnabled = () => {
     const redirectAllTo = process.env.EMAIL_REDIRECT_ALL_TO;
@@ -205,7 +220,7 @@ const sendQuoteEmail = async (quote, pdfBuffer) => {
             from: process.env.SMTP_FROM || 'noreply@quimicaindustrial.pe',
             to: companyTo,
             subject: `Nueva Cotización - ${clientName}`,
-            html: companyTemplate({
+            html: getCompanyTemplate()({
                 logo: logoSrc,
                 quoteId: quote._id,
                 date: new Date(quote.createdAt).toLocaleDateString('es-PE'),
@@ -236,7 +251,7 @@ const sendQuoteEmail = async (quote, pdfBuffer) => {
             from: process.env.SMTP_FROM || 'noreply@quimicaindustrial.pe',
             to: clientTo,
             subject: 'Confirmación de Cotización - Química Industrial Perú',
-            html: clientTemplate({
+            html: getClientTemplate()({
                 logo: logoSrc,
                 clientName: clientName,
                 quoteId: quote._id,
