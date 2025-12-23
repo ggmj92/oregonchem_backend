@@ -23,7 +23,16 @@ exports.getProducts = async (req, res) => {
         if (featured !== undefined) query.featured = featured === 'true';
         if (category) query.categoryIds = category;
         if (search) {
-            query.$text = { $search: search };
+            const searchRegex = new RegExp(search.split(' ').map(term =>
+                term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+            ).join('|'), 'i');
+            query.$or = [
+                { title: searchRegex },
+                { 'ai.shortDescription': searchRegex },
+                { 'ai.description': searchRegex },
+                { short_text: searchRegex },
+                { description_text: searchRegex }
+            ];
         }
 
         // Calculate pagination

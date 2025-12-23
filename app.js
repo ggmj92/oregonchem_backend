@@ -46,8 +46,6 @@ const allowedOrigins = [
   // Production domains
   'https://quimicaindustrial.pe',
   'https://www.quimicaindustrial.pe',
-  'https://quimicaindustrialpe.com',
-  'https://www.quimicaindustrialpe.com',
   'https://quimica.pe',
   'https://www.quimica.pe',
   'https://dashboard.quimica.pe',
