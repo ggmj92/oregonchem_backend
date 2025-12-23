@@ -1,7 +1,7 @@
 const Quote = require('../../models/QI/Quote');
 const Product = require('../../models/QI/Product');
 const generatePDF = require('../../services/pdfService');
-const { sendQuoteEmail } = require('../../services/emailService');
+const { sendQuoteEmail } = require('../../services/mailersendService');
 
 // Create a new quote
 exports.createQuote = async (req, res) => {
