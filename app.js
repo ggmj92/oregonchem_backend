@@ -13,6 +13,7 @@ const authRouter = require("./src/routes/authRoutes");
 const qiRoutes = require("./src/routes/qiRoutes");
 const aiImageRoutes = require('./src/routes/aiImageRoutes');
 const quoteRoutes = require('./src/routes/quoteRoutes');
+const maintenanceRoutes = require('./src/routes/maintenanceRoutes');
 const { admin, mainApp, analyticsApp } = require(path.resolve(__dirname, 'src/config/firebaseAdminInit'));
 
 const app = express();
@@ -205,6 +206,7 @@ app.use("/auth", authRouter);
 app.use("/api/qi", qiRoutes); // QI MongoDB API
 app.use('/api/public/quotes', quoteRoutes);
 app.use('/api/ai-images', aiImageRoutes);
+app.use('/api/maintenance', maintenanceRoutes);
 app.get('/favicon.ico', (req, res) => res.status(204));
 
 // Error handling middleware
