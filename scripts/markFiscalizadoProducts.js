@@ -1,6 +1,113 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-const Product = require('../src/models/QI/Product');
+
+// Connect to the qi database where products are actually stored
+const baseUri = process.env.MONGODB_URI_PROD || 'mongodb+srv://ggmj92:7yYTkZZN7IYVmXf7@quimicaindustrial.ybjimsf.mongodb.net/?retryWrites=true&w=majority';
+const mongoUri = baseUri.includes('?') ? baseUri.replace('?', 'qi?') : baseUri + '/qi';
+
+const options = {
+    bufferCommands: false,
+    maxPoolSize: 10,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+};
+
+const connection = mongoose.createConnection(mongoUri, options);
+
+// Define Product schema directly
+const ImageSchema = new mongoose.Schema({
+    url: { type: String, required: true },
+    alt: { type: String, default: '' },
+    width: Number,
+    height: Number,
+    hash: String
+}, { _id: false });
+
+const PresentationSnippetSchema = new mongoose.Schema({
+    qty: Number,
+    unit: String,
+    pretty: String
+}, { _id: false });
+
+const ProductSchema = new mongoose.Schema({
+    sourceId: { type: Number, unique: true, sparse: true, index: true },
+    wpType: { type: String, default: 'simple' },
+    title: { type: String, required: true },
+    slug: { type: String, required: true, unique: true, index: true },
+    sku: { type: String, index: true, sparse: true },
+    brand: { type: String },
+    status: {
+        type: String,
+        enum: ['draft', 'published'],
+        default: 'draft',
+        index: true
+    },
+    featured: { type: Boolean, default: false, index: true },
+    fiscalizado: { type: Boolean, default: false, index: true },
+    publishedAt: { type: Date },
+    categoryIds: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category',
+        index: true
+    }],
+    tags: { type: [String], index: true },
+    relatedProductIds: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product',
+        index: true
+    }],
+    relatedProducts: [{
+        productId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Product'
+        },
+        reason: String
+    }],
+    description_html: String,
+    description_text: String,
+    short_html: String,
+    short_text: String,
+    seo: {
+        title: String,
+        description: String,
+        keywords: [String]
+    },
+    media: {
+        hero: { type: ImageSchema, default: null },
+        gallery: { type: [ImageSchema], default: [] }
+    },
+    images: {
+        type: [ImageSchema],
+        default: []
+    },
+    presentationIds: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'CanonicalPresentation',
+        index: true
+    }],
+    presentations: { type: [PresentationSnippetSchema], default: [] },
+    defaultPresentation: { type: PresentationSnippetSchema, default: null },
+    views: { type: Number, default: 0, index: true },
+    searches: { type: Number, default: 0, index: true },
+    totalQuotes: { type: Number, default: 0, index: true },
+    stock_status: { type: String },
+    physicalState: {
+        type: String,
+        enum: ['solido', 'liquido', 'gel', 'polvo', 'granulado', 'pasta', 'gas', 'unknown'],
+        default: 'unknown'
+    },
+    ai: {
+        description: String,
+        shortDescription: String,
+        seoTitle: String,
+        seoDescription: String
+    },
+    sourceUrl: String,
+    related_source_ids: [Number],
+    sourceMeta: mongoose.Schema.Types.Mixed
+}, { timestamps: true });
+
+const Product = connection.model('Product', ProductSchema, 'products');
 
 // List of fiscalizado products from Decreto Supremo N° 268-2019-EF
 // ANEXO 1 and ANEXO 2
@@ -156,12 +263,35 @@ function isFiscalizado(productName) {
 async function markFiscalizadoProducts() {
     try {
         console.log('🔌 Connecting to MongoDB...');
-        await mongoose.connect(process.env.MONGODB_URI);
-        console.log('✅ Connected to MongoDB\n');
+        console.log('Using URI:', mongoUri);
+        await connection.asPromise();
+        console.log('✅ Connected to MongoDB');
+        console.log('Database name:', connection.db.databaseName);
+        
+        // List all databases
+        const adminDb = connection.db.admin();
+        const { databases } = await adminDb.listDatabases();
+        console.log('\nAvailable databases:');
+        databases.forEach(db => {
+            console.log(`  - ${db.name} (${(db.sizeOnDisk / 1024 / 1024).toFixed(2)} MB)`);
+        });
+        
+        console.log('\nCollection name: products\n');
 
         console.log('📋 Fetching all products...');
         const products = await Product.find({});
         console.log(`Found ${products.length} products\n`);
+        
+        if (products.length === 0) {
+            console.log('⚠️  No products found. Checking collection directly...');
+            const directCount = await connection.db.collection('products').countDocuments();
+            console.log(`Direct collection count: ${directCount}`);
+            
+            if (directCount > 0) {
+                const sample = await connection.db.collection('products').findOne({});
+                console.log('Sample product title:', sample?.title);
+            }
+        }
 
         let markedCount = 0;
         let alreadyMarkedCount = 0;
@@ -207,7 +337,7 @@ async function markFiscalizadoProducts() {
         console.error('❌ Error:', error);
         process.exit(1);
     } finally {
-        await mongoose.connection.close();
+        await connection.close();
         console.log('\n🔌 Disconnected from MongoDB');
     }
 }
