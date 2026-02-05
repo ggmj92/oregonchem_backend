@@ -2,7 +2,10 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 
 // Connect to the qi database where products are actually stored
-const baseUri = process.env.MONGODB_URI_PROD || 'mongodb+srv://ggmj92:7yYTkZZN7IYVmXf7@quimicaindustrial.ybjimsf.mongodb.net/?retryWrites=true&w=majority';
+const baseUri = process.env.MONGODB_URI_PROD;
+if (!baseUri) {
+    throw new Error('MONGODB_URI_PROD environment variable is required');
+}
 const mongoUri = baseUri.includes('?') ? baseUri.replace('?', 'qi?') : baseUri + '/qi';
 
 const options = {
