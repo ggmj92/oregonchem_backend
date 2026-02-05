@@ -34,6 +34,7 @@ const ProductSchema = new mongoose.Schema({
         index: true
     },
     featured: { type: Boolean, default: false, index: true },
+    fiscalizado: { type: Boolean, default: false, index: true },
     publishedAt: { type: Date },
 
     // taxonomy
