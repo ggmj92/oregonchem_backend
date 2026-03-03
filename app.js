@@ -10,6 +10,7 @@ dotenv.config();
 
 // Import routes and configurations
 const authRouter = require("./src/routes/authRoutes");
+const authMiddleware = require('./src/middlewares/authMiddleware');
 const qiRoutes = require("./src/routes/qiRoutes");
 const aiImageRoutes = require('./src/routes/aiImageRoutes');
 const quoteRoutes = require('./src/routes/quoteRoutes');
@@ -203,10 +204,11 @@ app.get('/api/test-auth', (req, res) => {
 
 // Routes
 app.use("/auth", authRouter);
-app.use("/api/qi", qiRoutes); // QI MongoDB API
+app.use("/api/qi", qiRoutes);             
 app.use('/api/public/quotes', quoteRoutes);
-app.use('/api/ai-images', aiImageRoutes);
-app.use('/api/maintenance', maintenanceRoutes);
+app.use('/api/ai-images', authMiddleware, aiImageRoutes);
+app.use('/api/maintenance', authMiddleware, maintenanceRoutes);
+
 app.get('/favicon.ico', (req, res) => res.status(204));
 
 // Error handling middleware

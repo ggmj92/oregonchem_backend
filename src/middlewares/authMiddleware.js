@@ -2,7 +2,6 @@ const { mainApp } = require("../config/firebaseAdminInit");
 
 const publicPaths = [
     '/',
-    '/api/',
     '/api/public',
     '/api/public/productos',
     '/api/public/categorias',
@@ -14,13 +13,13 @@ const publicPaths = [
 
 const authMiddleware = async (req, res, next) => {
     // Check if the path starts with any of the public paths
-    if (publicPaths.some(path => req.originalUrl.startsWith(path))) {
+    if (publicPaths.some(path => req.originalUrl === path || req.originalUrl.startsWith(path + '/'))) {
         return next();
     }
 
     const authorizationHeader = req.headers.authorization;
     if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
-        return res.status(401).json({ 
+        return res.status(401).json({
             message: "Unauthorized",
             error: "Missing or invalid authorization header"
         });
@@ -29,9 +28,9 @@ const authMiddleware = async (req, res, next) => {
     const idToken = authorizationHeader.split("Bearer ")[1];
     try {
         const decodedToken = await mainApp.auth().verifyIdToken(idToken);
-        
+
         if (decodedToken.exp < Date.now() / 1000) {
-            return res.status(401).json({ 
+            return res.status(401).json({
                 message: "Unauthorized",
                 error: "Token has expired"
             });
@@ -40,7 +39,7 @@ const authMiddleware = async (req, res, next) => {
         req.user = decodedToken;
         next();
     } catch (error) {
-        return res.status(401).json({ 
+        return res.status(401).json({
             message: "Unauthorized",
             error: error.message
         });

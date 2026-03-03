@@ -1,4 +1,4 @@
-const { sendContactEmail } = require('../../services/resendEmailService');
+const { sendContactEmail } = require('../../services/emailService');
 
 exports.sendContactMessage = async (req, res) => {
     console.log('=== Contact form submission received ===');
