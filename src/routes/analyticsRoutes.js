@@ -1,5 +1,5 @@
 const express = require('express');
-const { googleAuth, analyticsDataClient } = require('../config/firebaseAdmin');
+const { googleAuth, analyticsDataClient } = require('../config/googleAnalytics');
 const router = express.Router();
 
 // Apply authentication middleware to all analytics routes
