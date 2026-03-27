@@ -40,8 +40,7 @@ const ProductSchema = new mongoose.Schema({
     // taxonomy
     categoryIds: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Category',
-        index: true
+        ref: 'Category'
     }],
     tags: { type: [String], index: true },
 
@@ -94,9 +93,9 @@ const ProductSchema = new mongoose.Schema({
     defaultPresentation: { type: PresentationSnippetSchema, default: null },
 
     // metrics
-    views: { type: Number, default: 0, index: true },
-    searches: { type: Number, default: 0, index: true },
-    totalQuotes: { type: Number, default: 0, index: true },
+    views: { type: Number, default: 0 },
+    searches: { type: Number, default: 0 },
+    totalQuotes: { type: Number, default: 0 },
 
     // stock / availability
     stock_status: { type: String },
