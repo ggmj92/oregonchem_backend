@@ -208,6 +208,17 @@ exports.deleteProduct = async (req, res) => {
     }
 };
 
+// GET /api/qi/products/slugs - Get all published product slugs (lightweight, for static path generation)
+exports.getProductSlugs = async (req, res) => {
+    try {
+        const slugs = await Product.find({ status: 'published' }, { slug: 1, _id: 0 }).lean();
+        res.json({ success: true, data: slugs });
+    } catch (error) {
+        console.error('Error fetching product slugs:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
 // GET /api/qi/products/featured - Get featured products
 exports.getFeaturedProducts = async (req, res) => {
     try {
