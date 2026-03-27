@@ -9,7 +9,7 @@ const authMiddleware = require('../middlewares/authMiddleware');
  * POST /api/ai-images/generate
  * Generate AI images for a product using presentation templates
  */
-router.post('/generate', authMiddleware, async (req, res) => {
+router.post('/generate', async (req, res) => {
     try {
         console.log('Request body received:', JSON.stringify(req.body, null, 2));
         const { producto, presentaciones } = req.body;
@@ -112,7 +112,7 @@ router.post('/generate', authMiddleware, async (req, res) => {
  * POST /api/ai-images/generate-single
  * Generate a single AI image for testing
  */
-router.post('/generate-single', authMiddleware, async (req, res) => {
+router.post('/generate-single', async (req, res) => {
     try {
         const { producto, presentacion, base64Image } = req.body;
 
@@ -151,7 +151,7 @@ router.post('/generate-single', authMiddleware, async (req, res) => {
  * GET /api/ai-images/test
  * Test endpoint to verify Gemini API connection
  */
-router.get('/test', async (req, res) => {
+router.get('/test', authMiddleware, async (req, res) => {
     try {
         console.log('Testing Gemini API connection...');
 

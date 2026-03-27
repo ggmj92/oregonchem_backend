@@ -24,6 +24,20 @@ exports.createQuote = async (req, res) => {
 
         const finalObservations = (observations ?? comments ?? '').toString();
 
+        // Validate required fields
+        const missing = [];
+        if (!firstName) missing.push('firstName');
+        if (!lastName) missing.push('lastName');
+        if (!email) missing.push('email');
+        if (!phone) missing.push('phone');
+        if (!products || !Array.isArray(products) || products.length === 0) missing.push('products');
+        if (missing.length > 0) {
+            return res.status(400).json({
+                success: false,
+                error: `Missing required fields: ${missing.join(', ')}`
+            });
+        }
+
         // Enrich products with full product names
         const enrichedProducts = await Promise.all(
             products.map(async (product) => {
@@ -34,7 +48,7 @@ exports.createQuote = async (req, res) => {
                         productName: productDoc ? (productDoc.title || productDoc.name) : 'Producto desconocido',
                         presentationId: product.presentationId || null,
                         presentationLabel: product.presentationLabel || 'N/A',
-                        quantity: parseInt(product.quantity),
+                        quantity: parseInt(product.quantity) || 1,
                         frequency: product.frequency
                     };
                 } catch (err) {
@@ -44,7 +58,7 @@ exports.createQuote = async (req, res) => {
                         productName: 'Producto desconocido',
                         presentationId: product.presentationId || null,
                         presentationLabel: product.presentationLabel || 'N/A',
-                        quantity: parseInt(product.quantity),
+                        quantity: parseInt(product.quantity) || 1,
                         frequency: product.frequency
                     };
                 }

@@ -65,6 +65,9 @@ exports.getCategoryById = async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching category:', error);
+        if (error.name === 'CastError') {
+            return res.status(400).json({ success: false, error: 'Invalid category ID' });
+        }
         res.status(500).json({
             success: false,
             error: error.message
@@ -150,6 +153,9 @@ exports.getCategoryProducts = async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching category products:', error);
+        if (error.name === 'CastError') {
+            return res.status(400).json({ success: false, error: 'Invalid category ID' });
+        }
         res.status(500).json({
             success: false,
             error: error.message

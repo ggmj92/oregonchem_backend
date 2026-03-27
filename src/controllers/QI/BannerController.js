@@ -84,6 +84,9 @@ exports.getBannerById = async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching banner:', error);
+        if (error.name === 'CastError') {
+            return res.status(400).json({ success: false, error: 'Invalid banner ID' });
+        }
         res.status(500).json({
             success: false,
             error: error.message
@@ -185,6 +188,9 @@ exports.toggleActive = async (req, res) => {
         });
     } catch (error) {
         console.error('Error toggling banner status:', error);
+        if (error.name === 'CastError') {
+            return res.status(400).json({ success: false, error: 'Invalid banner ID' });
+        }
         res.status(500).json({
             success: false,
             error: error.message

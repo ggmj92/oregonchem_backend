@@ -39,6 +39,9 @@ exports.getPresentationById = async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching presentation:', error);
+        if (error.name === 'CastError') {
+            return res.status(400).json({ success: false, error: 'Invalid presentation ID' });
+        }
         res.status(500).json({
             success: false,
             error: error.message
@@ -91,6 +94,9 @@ exports.getPresentationProducts = async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching presentation products:', error);
+        if (error.name === 'CastError') {
+            return res.status(400).json({ success: false, error: 'Invalid presentation ID' });
+        }
         res.status(500).json({
             success: false,
             error: error.message
