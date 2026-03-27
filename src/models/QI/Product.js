@@ -92,6 +92,12 @@ const ProductSchema = new mongoose.Schema({
     presentations: { type: [PresentationSnippetSchema], default: [] },
     defaultPresentation: { type: PresentationSnippetSchema, default: null },
 
+    physicalState: {
+        type: String,
+        enum: ['liquido', 'solido', 'polvo', 'granular', 'pasta', 'gas', 'unknown'],
+        index: true
+    },
+
     // metrics
     views: { type: Number, default: 0 },
     searches: { type: Number, default: 0 },

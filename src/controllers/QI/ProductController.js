@@ -224,10 +224,10 @@ exports.getFeaturedProducts = async (req, res) => {
     try {
         const { limit = 6 } = req.query;
 
-        const products = await Product.find({ status: 'published', featured: true })
+        const products = await Product.find({ status: 'published' })
             .populate('categoryIds', 'name slug image')
             .populate('presentationIds', 'qty unit pretty image sortOrder')
-            .sort({ createdAt: -1 })
+            .sort({ totalQuotes: -1, views: -1 })
             .limit(parseInt(limit))
             .lean();
 
