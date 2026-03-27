@@ -24,7 +24,6 @@ const authRouter = require("./src/routes/authRoutes");
 const authMiddleware = require('./src/middlewares/authMiddleware');
 const qiRoutes = require("./src/routes/qiRoutes");
 const aiImageRoutes = require('./src/routes/aiImageRoutes');
-const quoteRoutes = require('./src/routes/quoteRoutes');
 const maintenanceRoutes = require('./src/routes/maintenanceRoutes');
 const analyticsRoutes = require('./src/routes/analyticsRoutes');
 const { admin, mainApp, analyticsApp } = require(path.resolve(__dirname, 'src/config/firebaseAdminInit'));
@@ -217,7 +216,6 @@ app.get('/api/test-auth', (req, res) => {
 // Routes
 app.use("/auth", authRouter);
 app.use("/api/qi", qiRoutes);
-app.use('/api/public/quotes', quoteRoutes);
 app.use('/api/ai-images', authMiddleware, aiImageRoutes);
 app.use('/api/maintenance', authMiddleware, maintenanceRoutes);
 app.use('/api/analytics', authMiddleware, analyticsRoutes);
