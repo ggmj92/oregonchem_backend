@@ -7,7 +7,6 @@ const publicPaths = [
     '/api/public/categorias',
     '/api/public/presentaciones',
     '/api/public/banners',
-    '/api/public/quotes',
     '/api/analytics/quimicaindustrial/overview',
 ];
 
