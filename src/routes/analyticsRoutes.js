@@ -244,6 +244,10 @@ router.get('/combined/overview', async (req, res) => {
 
             try {
                 const siteData = await fetchAnalyticsData(site.propertyId);
+                if (!siteData.rows || siteData.rows.length === 0) {
+                    console.warn(`No analytics rows returned for site ${siteId}`);
+                    continue;
+                }
                 const todayData = siteData.rows[siteData.rows.length - 1];
 
                 combinedData.totalSessions += parseInt(todayData.metricValues[0].value);
@@ -277,11 +281,13 @@ router.get('/:siteId/events', async (req, res) => {
         const site = SITES[siteId];
 
         if (!site) {
-            throw new Error(`Site ${siteId} not found`);
+            return res.status(404).json({ message: `Site ${siteId} not found` });
         }
 
         if (!site.propertyId) {
-            throw new Error(`Google Analytics Property ID for ${site.name} is not configured`);
+            return res.status(400).json({
+                message: `Google Analytics Property ID for ${site.name} is not configured`
+            });
         }
 
         const data = await fetchCustomEvents(site.propertyId);

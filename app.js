@@ -8,6 +8,17 @@ const mongoose = require('mongoose');
 // Load environment variables
 dotenv.config();
 
+// Global error handlers — must be registered before anything else
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught exception — shutting down:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled promise rejection:', reason);
+  // Do not exit — let the request fail naturally; Render will restart on crash
+});
+
 // Import routes and configurations
 const authRouter = require("./src/routes/authRoutes");
 const authMiddleware = require('./src/middlewares/authMiddleware');
@@ -217,9 +228,10 @@ app.get('/favicon.ico', (req, res) => res.status(204));
 app.use((err, req, res, next) => {
   console.error('Error:', err);
   const statusCode = err.statusCode || 500;
+  const isProduction = process.env.NODE_ENV === 'production';
   res.status(statusCode).json({
     error: {
-      message: err.message || 'Internal Server Error',
+      message: statusCode === 500 && isProduction ? 'Internal Server Error' : (err.message || 'Internal Server Error'),
       status: statusCode
     }
   });

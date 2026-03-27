@@ -92,6 +92,9 @@ exports.getProductById = async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching product:', error);
+        if (error.name === 'CastError') {
+            return res.status(400).json({ success: false, error: 'Invalid product ID' });
+        }
         res.status(500).json({
             success: false,
             error: error.message
@@ -124,6 +127,9 @@ exports.getProductBySlug = async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching product:', error);
+        if (error.name === 'CastError') {
+            return res.status(400).json({ success: false, error: 'Invalid product slug' });
+        }
         res.status(500).json({
             success: false,
             error: error.message
@@ -274,6 +280,9 @@ exports.getRelatedProducts = async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching related products:', error);
+        if (error.name === 'CastError') {
+            return res.status(400).json({ success: false, error: 'Invalid product ID' });
+        }
         res.status(500).json({
             success: false,
             error: error.message
