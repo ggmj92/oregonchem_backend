@@ -6,8 +6,7 @@ const path = require('path');
 // Load environment variables
 dotenv.config();
 
-// Debug environment variables (without sensitive values)
-console.log('🔍 Checking Environment Variables...');
+console.log('Checking environment variables...');
 console.log('NODE_ENV:', process.env.NODE_ENV);
 console.log('MONGODB_URI_PROD:', process.env.MONGODB_URI_PROD ? 'Set' : 'Not set');
 console.log('FIREBASE_PROJECT_ID:', process.env.FIREBASE_PROJECT_ID ? 'Set' : 'Not set');
@@ -28,7 +27,7 @@ if (!admin.apps.length) {
             databaseURL: process.env.FIREBASE_DATABASE_URL,
             storageBucket: process.env.GOOGLE_CLOUD_STORAGE_BUCKET
         });
-        console.log('✅ Firebase Admin SDK initialized');
+        console.log('Firebase Admin SDK initialized');
     } catch (error) {
         console.error('❌ Firebase Admin SDK initialization failed:', error.message);
     }
@@ -45,10 +44,10 @@ async function testMongoDBConnection() {
         
         const readyState = mongoose.connection.readyState;
         if (readyState === 1) {
-            console.log('✅ MongoDB Connection: Connected');
+            console.log('MongoDB connection: connected');
             return true;
         } else {
-            console.log('❌ MongoDB Connection: Not connected (State:', readyState, ')');
+            console.log('MongoDB connection: not connected (state:', readyState, ')');
             return false;
         }
     } catch (error) {
@@ -65,9 +64,8 @@ async function testFirebaseConnection() {
         }
         
         // Test Firebase connection by listing users
-        console.log('Testing Firebase connection...');
         await admin.auth().listUsers(1);
-        console.log('✅ Firebase Connection: Connected');
+        console.log('Firebase connection: connected');
         return true;
     } catch (error) {
         console.error('❌ Firebase Connection Error:', error.message);
@@ -76,7 +74,7 @@ async function testFirebaseConnection() {
 }
 
 async function runConnectionTests() {
-    console.log('🔍 Running Connection Tests...');
+    console.log('Running connection tests...');
     console.log('Environment:', process.env.NODE_ENV || 'development');
     
     try {
@@ -84,10 +82,10 @@ async function runConnectionTests() {
         const firebaseResult = await testFirebaseConnection();
         
         if (mongoResult && firebaseResult) {
-            console.log('✅ All connections successful!');
+            console.log('All connections successful');
             process.exit(0);
         } else {
-            console.log('❌ Some connections failed!');
+            console.log('Some connections failed');
             process.exit(1);
         }
     } catch (error) {

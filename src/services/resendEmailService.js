@@ -5,11 +5,6 @@ const handlebars = require('handlebars');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-console.log('Resend Email Service initialized:', {
-    apiKeySet: !!process.env.RESEND_API_KEY,
-    from: process.env.SMTP_FROM || 'contacto@quimicaindustrial.pe'
-});
-
 const loadTemplate = (templateName) => {
     const templatePath = path.join(__dirname, '../templates', templateName);
     const template = fs.readFileSync(templatePath, 'utf8');

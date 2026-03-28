@@ -11,23 +11,17 @@ const authMiddleware = require('../middlewares/authMiddleware');
  */
 router.post('/generate', async (req, res) => {
     try {
-        console.log('Request body received:', JSON.stringify(req.body, null, 2));
         const { producto, presentaciones } = req.body;
 
         if (!producto || !presentaciones || !Array.isArray(presentaciones)) {
-            console.log('Validation failed:', { producto, presentaciones, isArray: Array.isArray(presentaciones) });
             return res.status(400).json({
                 success: false,
                 error: 'Producto and presentaciones array are required'
             });
         }
 
-        console.log(`Generating AI images for product: ${producto}`);
-        console.log(`Presentations: ${presentaciones.map(p => p.id).join(', ')}`);
-
         // Get unique presentation template IDs
         const uniqueTemplateIds = [...new Set(presentaciones.map(p => p.id))];
-        console.log('Unique template IDs:', uniqueTemplateIds);
 
         // Fetch presentation templates from database
         const presentationIds = uniqueTemplateIds.map(id => new mongoose.Types.ObjectId(id));
@@ -123,8 +117,6 @@ router.post('/generate-single', async (req, res) => {
             });
         }
 
-        console.log(`Generating single AI image for product: ${producto}, presentation: ${presentacion}`);
-
         // For testing, use a placeholder base64 image if none provided
         const testBase64Image = base64Image || 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
 
@@ -153,8 +145,6 @@ router.post('/generate-single', async (req, res) => {
  */
 router.get('/test', authMiddleware, async (req, res) => {
     try {
-        console.log('Testing Gemini API connection...');
-
         // Test with a simple 1x1 pixel PNG
         const testBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
 
