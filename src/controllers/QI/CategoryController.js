@@ -8,6 +8,7 @@ exports.getCategories = async (req, res) => {
 
         const categories = await Category.find({ legacy: false })
             .sort({ name: 1 })
+            .maxTimeMS(10000)
             .lean();
 
         // Optionally include product count for each category
@@ -17,7 +18,7 @@ exports.getCategories = async (req, res) => {
                     const productCount = await Product.countDocuments({
                         categoryIds: category._id,
                         status: 'published'
-                    });
+                    }).maxTimeMS(10000);
                     return { ...category, productCount };
                 })
             );
@@ -44,7 +45,7 @@ exports.getCategories = async (req, res) => {
 // GET /api/qi/categories/:id - Get single category
 exports.getCategoryById = async (req, res) => {
     try {
-        const category = await Category.findById(req.params.id).lean();
+        const category = await Category.findById(req.params.id).maxTimeMS(10000).lean();
 
         if (!category) {
             return res.status(404).json({
@@ -57,7 +58,7 @@ exports.getCategoryById = async (req, res) => {
         const productCount = await Product.countDocuments({
             categoryIds: category._id,
             status: 'published'
-        });
+        }).maxTimeMS(10000);
 
         res.json({
             success: true,
@@ -78,7 +79,7 @@ exports.getCategoryById = async (req, res) => {
 // GET /api/qi/categories/slug/:slug - Get category by slug
 exports.getCategoryBySlug = async (req, res) => {
     try {
-        const category = await Category.findOne({ slug: req.params.slug }).lean();
+        const category = await Category.findOne({ slug: req.params.slug }).maxTimeMS(10000).lean();
 
         if (!category) {
             return res.status(404).json({
@@ -91,7 +92,7 @@ exports.getCategoryBySlug = async (req, res) => {
         const productCount = await Product.countDocuments({
             categoryIds: category._id,
             status: 'published'
-        });
+        }).maxTimeMS(10000);
 
         res.json({
             success: true,
@@ -111,7 +112,7 @@ exports.getCategoryProducts = async (req, res) => {
     try {
         const { page = 1, limit = 20, sortBy = 'title', sortOrder = 'asc' } = req.query;
 
-        const category = await Category.findById(req.params.id);
+        const category = await Category.findById(req.params.id).maxTimeMS(10000);
         if (!category) {
             return res.status(404).json({
                 success: false,
@@ -131,12 +132,13 @@ exports.getCategoryProducts = async (req, res) => {
             .sort(sortOptions)
             .skip(skip)
             .limit(parseInt(limit))
+            .maxTimeMS(10000)
             .lean();
 
         const total = await Product.countDocuments({
             categoryIds: category._id,
             status: 'published'
-        });
+        }).maxTimeMS(10000);
 
         res.json({
             success: true,
@@ -217,7 +219,7 @@ exports.deleteCategory = async (req, res) => {
         // Check if category has products
         const productCount = await Product.countDocuments({
             categoryIds: req.params.id
-        });
+        }).maxTimeMS(10000);
 
         if (productCount > 0) {
             return res.status(400).json({

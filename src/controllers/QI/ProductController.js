@@ -46,10 +46,11 @@ exports.getProducts = async (req, res) => {
             .sort(sortOptions)
             .skip(skip)
             .limit(parseInt(limit))
+            .maxTimeMS(10000)
             .lean();
 
         // Get total count for pagination
-        const total = await Product.countDocuments(query);
+        const total = await Product.countDocuments(query).maxTimeMS(10000);
 
         res.json({
             success: true,
@@ -77,6 +78,7 @@ exports.getProductById = async (req, res) => {
             .populate('categoryIds', 'name slug image description')
             .populate('presentationIds', 'qty unit pretty image sortOrder')
             .populate('relatedProductIds', 'title slug images status')
+            .maxTimeMS(10000)
             .lean();
 
         if (!product) {
@@ -109,6 +111,7 @@ exports.getProductBySlug = async (req, res) => {
             .populate('categoryIds', 'name slug image description')
             .populate('presentationIds', 'qty unit pretty image sortOrder')
             .populate('relatedProductIds', 'title slug images status')
+            .maxTimeMS(10000)
             .lean();
 
         if (!product) {
@@ -118,13 +121,13 @@ exports.getProductBySlug = async (req, res) => {
             });
         }
 
-        // Increment view count
-        await Product.findByIdAndUpdate(product._id, { $inc: { views: 1 } });
-
         res.json({
             success: true,
             data: product
         });
+
+        // Increment view count after response is sent — client doesn't wait for this
+        Product.findByIdAndUpdate(product._id, { $inc: { views: 1 } }).maxTimeMS(5000).catch(() => {});
     } catch (error) {
         console.error('Error fetching product:', error);
         if (error.name === 'CastError') {
@@ -217,7 +220,7 @@ exports.deleteProduct = async (req, res) => {
 // GET /api/qi/products/slugs - Get all published product slugs (lightweight, for static path generation)
 exports.getProductSlugs = async (req, res) => {
     try {
-        const slugs = await Product.find({ status: 'published' }, { slug: 1, _id: 0 }).lean();
+        const slugs = await Product.find({ status: 'published' }, { slug: 1, _id: 0 }).maxTimeMS(10000).lean();
         res.json({ success: true, data: slugs });
     } catch (error) {
         console.error('Error fetching product slugs:', error);
@@ -235,6 +238,7 @@ exports.getFeaturedProducts = async (req, res) => {
             .populate('presentationIds', 'qty unit pretty image sortOrder')
             .sort({ totalQuotes: -1, views: -1 })
             .limit(parseInt(limit))
+            .maxTimeMS(10000)
             .lean();
 
         res.json({
@@ -254,7 +258,7 @@ exports.getFeaturedProducts = async (req, res) => {
 exports.getRelatedProducts = async (req, res) => {
     try {
         const { limit = 4 } = req.query;
-        const product = await Product.findById(req.params.id);
+        const product = await Product.findById(req.params.id).maxTimeMS(10000);
 
         if (!product) {
             return res.status(404).json({
@@ -272,6 +276,7 @@ exports.getRelatedProducts = async (req, res) => {
             .populate('categoryIds', 'name slug image')
             .populate('presentationIds', 'qty unit pretty image sortOrder')
             .limit(parseInt(limit))
+            .maxTimeMS(10000)
             .lean();
 
         res.json({
@@ -293,7 +298,7 @@ exports.getRelatedProducts = async (req, res) => {
 // PATCH /api/qi/products/:id/publish - Publish/unpublish product
 exports.togglePublish = async (req, res) => {
     try {
-        const product = await Product.findById(req.params.id);
+        const product = await Product.findById(req.params.id).maxTimeMS(10000);
 
         if (!product) {
             return res.status(404).json({
