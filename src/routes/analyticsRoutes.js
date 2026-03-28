@@ -2,40 +2,12 @@ const express = require('express');
 const { googleAuth, analyticsDataClient } = require('../config/googleAnalytics');
 const router = express.Router();
 
-// Apply authentication middleware to all analytics routes
-// router.use(verifyToken); // Temporarily disabled due to Firebase config issues
-
-// List of all sites (current and future)
 const SITES = {
     quimicaindustrial: {
         name: 'Química Industrial',
         propertyId: process.env.GOOGLE_ANALYTICS_PROPERTY_ID_QUIMICAINDUSTRIAL,
-        firebaseApp: 'quimicaindustrial-web', // Firebase app name
-        // Add other site-specific configurations here
+        firebaseApp: 'quimicaindustrial-web',
     },
-    // Future sites (commented out for now)
-    /*
-    site2: {
-        name: 'Site 2',
-        propertyId: process.env.GOOGLE_ANALYTICS_PROPERTY_ID_SITE2,
-        firebaseApp: 'site2-web',
-    },
-    site3: {
-        name: 'Site 3',
-        propertyId: process.env.GOOGLE_ANALYTICS_PROPERTY_ID_SITE3,
-        firebaseApp: 'site3-web',
-    },
-    site4: {
-        name: 'Site 4',
-        propertyId: process.env.GOOGLE_ANALYTICS_PROPERTY_ID_SITE4,
-        firebaseApp: 'site4-web',
-    },
-    site5: {
-        name: 'Site 5',
-        propertyId: process.env.GOOGLE_ANALYTICS_PROPERTY_ID_SITE5,
-        firebaseApp: 'site5-web',
-    }
-    */
 };
 
 // Helper function to fetch analytics data for a specific property

@@ -24,10 +24,6 @@ class GeminiService {
                 throw new Error('GEMINI_API_KEY environment variable is not set. AI image generation is disabled.');
             }
             
-            console.log(`Generating AI image for product: ${producto}, presentation: ${presentacion}`);
-            console.log(`Text parameter received:`, text);
-            console.log(`Text type:`, typeof text);
-            
             // Replace placeholders in the stored prompt text
             const defaultPrompt = "Edita exclusivamente la zona blanca de la etiqueta del producto, ese espacio vacío en blanco es el único lugar editable; en él agrega el nombre del producto: {producto} y debajo su presentación: {presentación}, con apariencia real de impresión en etiqueta; utiliza tipografía sans-serif moderna (Helvetica/Inter/Roboto o similar), color negro puro (#000000) sin contornos ni efectos, el nombre en seminegrita/medium y la presentación en regular/medium a un 70–80% del tamaño del nombre, alineada a la izquierda; si el nombre es largo divídelo automáticamente en dos líneas en lugar de reducir demasiado el tamaño; mantén márgenes internos del 4–6% para que el texto no se salga del área, aplica ligera curvatura/perspectiva para que ambas líneas sigan la forma cilíndrica del envase y se perciban adheridas a la etiqueta, simulando tinta impresa sin añadir gráficos ni efectos extra, conservando la iluminación, textura y proporciones originales del envase, con resultado nítido, fotorealista y sin artefactos.";
             
@@ -73,7 +69,6 @@ class GeminiService {
             }
 
             const result = await response.json();
-            console.log('Gemini API response received');
 
             // Extract the generated image data
             if (result.candidates && result.candidates[0] && result.candidates[0].content) {
@@ -83,7 +78,6 @@ class GeminiService {
                     // Check all parts for inlineData (image data)
                     for (let i = 0; i < content.parts.length; i++) {
                         if (content.parts[i] && content.parts[i].inlineData) {
-                            console.log(`Found image data in part ${i}, length: ${content.parts[i].inlineData.data?.length || 0} characters`);
                             return {
                                 success: true,
                                 imageData: content.parts[i].inlineData.data,
@@ -113,8 +107,6 @@ class GeminiService {
      */
     async generateMultipleProductImages(producto, presentations) {
         try {
-            console.log(`Generating ${presentations.length} AI images for product: ${producto}`);
-            
             const promises = presentations.map(async (pres) => {
                 const result = await this.generateProductImage(producto, pres.presentacion, pres.base64Image, pres.text);
                 return {
@@ -124,8 +116,6 @@ class GeminiService {
             });
 
             const results = await Promise.all(promises);
-            console.log(`Generated ${results.length} AI images`);
-            
             return results;
         } catch (error) {
             console.error('Error generating multiple AI images:', error);

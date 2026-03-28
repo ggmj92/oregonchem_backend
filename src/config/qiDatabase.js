@@ -16,16 +16,12 @@ const options = {
 // Create a separate connection for the QI database
 const qiConnection = mongoose.createConnection(mongoUri, options);
 
-qiConnection.on('connected', () => {
-    console.log('✅ Connected to QI MongoDB Database');
-});
-
 qiConnection.on('error', (err) => {
-    console.error('❌ QI MongoDB connection error:', err);
+    console.error('QI MongoDB connection error:', err);
 });
 
 qiConnection.on('disconnected', () => {
-    console.error('⚠️  Disconnected from QI MongoDB Database — exiting for clean restart');
+    console.error('Disconnected from QI MongoDB — exiting for clean restart');
     process.exit(1);
 });
 
