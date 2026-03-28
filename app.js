@@ -36,9 +36,9 @@ console.log('Starting server with environment:', process.env.NODE_ENV || 'develo
 console.log('MongoDB URI:', process.env.MONGODB_URI_PROD ? 'Set' : 'Not set');
 console.log('Firebase Project ID:', process.env.FIREBASE_PROJECT_ID ? 'Set' : 'Not set');
 
-// QI MongoDB connection (lazy-loaded by models)
-// Connection will be established when first model is used
-console.log('MongoDB will connect on first request');
+// QI MongoDB connection — initiated at startup when qiRoutes loads its controllers,
+// which require models, which call qiConnection.model() on the named connection.
+console.log('MongoDB connection initiated at startup');
 
 // CORS configuration
 const allowedOrigins = [

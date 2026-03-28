@@ -6,6 +6,7 @@ exports.getPresentations = async (req, res) => {
     try {
         const presentations = await CanonicalPresentation.find({})
             .sort({ sortOrder: 1 })
+            .maxTimeMS(10000)
             .lean();
 
         res.json({
@@ -24,7 +25,7 @@ exports.getPresentations = async (req, res) => {
 // GET /api/qi/presentations/:id - Get single presentation
 exports.getPresentationById = async (req, res) => {
     try {
-        const presentation = await CanonicalPresentation.findById(req.params.id).lean();
+        const presentation = await CanonicalPresentation.findById(req.params.id).maxTimeMS(10000).lean();
 
         if (!presentation) {
             return res.status(404).json({
@@ -54,7 +55,7 @@ exports.getPresentationProducts = async (req, res) => {
     try {
         const { page = 1, limit = 20 } = req.query;
 
-        const presentation = await CanonicalPresentation.findById(req.params.id);
+        const presentation = await CanonicalPresentation.findById(req.params.id).maxTimeMS(10000);
         if (!presentation) {
             return res.status(404).json({
                 success: false,
@@ -72,12 +73,13 @@ exports.getPresentationProducts = async (req, res) => {
             .populate('presentationIds', 'qty unit pretty image sortOrder')
             .skip(skip)
             .limit(parseInt(limit))
+            .maxTimeMS(10000)
             .lean();
 
         const total = await Product.countDocuments({
             presentationIds: presentation._id,
             status: 'published'
-        });
+        }).maxTimeMS(10000);
 
         res.json({
             success: true,
@@ -230,13 +232,13 @@ exports.updatePresentationImage = async (req, res) => {
 // POST /api/qi/presentations/sync-counts - Sync product counts for all presentations
 exports.syncProductCounts = async (req, res) => {
     try {
-        const presentations = await CanonicalPresentation.find({});
+        const presentations = await CanonicalPresentation.find({}).maxTimeMS(10000);
 
         const updates = await Promise.all(
             presentations.map(async (presentation) => {
                 const count = await Product.countDocuments({
                     presentationIds: presentation._id
-                });
+                }).maxTimeMS(10000);
 
                 await CanonicalPresentation.findByIdAndUpdate(presentation._id, {
                     productCount: count
