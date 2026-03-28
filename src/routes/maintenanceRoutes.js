@@ -35,7 +35,7 @@ router.post('/cleanup-presentations', async (req, res) => {
         };
 
         // Step 1: Analyze presentations
-        const presentations = await Presentation.find({}).lean();
+        const presentations = await Presentation.find({}).maxTimeMS(10000).lean();
         
         const solidUnits = ['kg', 'g', 'ton', 'lb', 'oz'];
         const liquidUnits = ['L', 'ml', 'gal'];
@@ -70,7 +70,7 @@ router.post('/cleanup-presentations', async (req, res) => {
         // Step 2: Remove presentations from products
         const affectedProducts = await Product.find({
             presentationIds: { $in: idsToDelete }
-        });
+        }).maxTimeMS(15000);
 
         for (const product of affectedProducts) {
             product.presentationIds = product.presentationIds.filter(
@@ -90,7 +90,7 @@ router.post('/cleanup-presentations', async (req, res) => {
 
         // Step 4: Create Cilindro presentation
         let cilindroId;
-        const existingCilindro = await Presentation.findOne({ pretty: 'Cilindro' });
+        const existingCilindro = await Presentation.findOne({ pretty: 'Cilindro' }).maxTimeMS(10000);
         
         if (existingCilindro) {
             cilindroId = existingCilindro._id;
@@ -115,7 +115,7 @@ router.post('/cleanup-presentations', async (req, res) => {
         // Step 5: Add Cilindro to all liquid products
         const liquidProducts = await Product.find({
             physicalState: 'liquido'
-        });
+        }).maxTimeMS(15000);
 
         let cilindroAddedCount = 0;
         for (const product of liquidProducts) {
@@ -135,7 +135,7 @@ router.post('/cleanup-presentations', async (req, res) => {
         results.updated.totalLiquidProducts = liquidProducts.length;
 
         // Final summary
-        const remainingPresentations = await Presentation.find({});
+        const remainingPresentations = await Presentation.find({}).maxTimeMS(10000);
         results.summary = {
             remainingPresentations: remainingPresentations.length,
             presentations: remainingPresentations.map(p => ({

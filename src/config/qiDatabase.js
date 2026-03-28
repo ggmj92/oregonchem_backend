@@ -8,7 +8,9 @@ const options = {
     bufferCommands: false,
     maxPoolSize: 10,
     serverSelectionTimeoutMS: 5000,
+    connectTimeoutMS: 10000,
     socketTimeoutMS: 45000,
+    family: 4,
 };
 
 // Create a separate connection for the QI database
@@ -23,7 +25,8 @@ qiConnection.on('error', (err) => {
 });
 
 qiConnection.on('disconnected', () => {
-    console.log('⚠️  Disconnected from QI MongoDB Database');
+    console.error('⚠️  Disconnected from QI MongoDB Database — exiting for clean restart');
+    process.exit(1);
 });
 
 module.exports = qiConnection;

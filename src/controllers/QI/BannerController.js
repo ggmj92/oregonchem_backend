@@ -11,6 +11,7 @@ exports.getBanners = async (req, res) => {
 
         const banners = await Banner.find(query)
             .sort({ sortOrder: 1, createdAt: -1 })
+            .maxTimeMS(10000)
             .lean();
 
         res.json({
@@ -51,6 +52,7 @@ exports.getActiveBanners = async (req, res) => {
             ]
         })
             .sort({ sortOrder: 1 })
+            .maxTimeMS(10000)
             .lean();
 
         res.json({
@@ -69,7 +71,7 @@ exports.getActiveBanners = async (req, res) => {
 // GET /api/qi/banners/:id - Get single banner
 exports.getBannerById = async (req, res) => {
     try {
-        const banner = await Banner.findById(req.params.id).lean();
+        const banner = await Banner.findById(req.params.id).maxTimeMS(10000).lean();
 
         if (!banner) {
             return res.status(404).json({
@@ -170,7 +172,7 @@ exports.deleteBanner = async (req, res) => {
 // PATCH /api/qi/banners/:id/toggle - Toggle banner active status
 exports.toggleActive = async (req, res) => {
     try {
-        const banner = await Banner.findById(req.params.id);
+        const banner = await Banner.findById(req.params.id).maxTimeMS(10000);
 
         if (!banner) {
             return res.status(404).json({

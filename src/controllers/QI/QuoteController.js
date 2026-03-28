@@ -42,7 +42,7 @@ exports.createQuote = async (req, res) => {
         const enrichedProducts = await Promise.all(
             products.map(async (product) => {
                 try {
-                    const productDoc = await Product.findById(product.productId).lean();
+                    const productDoc = await Product.findById(product.productId).maxTimeMS(10000).lean();
                     return {
                         productId: product.productId,
                         productName: productDoc ? (productDoc.title || productDoc.name) : 'Producto desconocido',
@@ -140,9 +140,10 @@ exports.getQuotes = async (req, res) => {
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(parseInt(limit))
+            .maxTimeMS(10000)
             .lean();
 
-        const total = await Quote.countDocuments(query);
+        const total = await Quote.countDocuments(query).maxTimeMS(10000);
 
         res.json({
             success: true,
@@ -166,7 +167,7 @@ exports.getQuotes = async (req, res) => {
 // Get a single quote
 exports.getQuote = async (req, res) => {
     try {
-        const quote = await Quote.findById(req.params.id).lean();
+        const quote = await Quote.findById(req.params.id).maxTimeMS(10000).lean();
 
         if (!quote) {
             return res.status(404).json({
