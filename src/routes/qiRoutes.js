@@ -17,6 +17,7 @@ const authMiddleware = require('../middlewares/authMiddleware');
 
 // Public routes
 router.get('/products', ProductController.getProducts);
+router.get('/products/catalog', ProductController.getProductCatalog);
 router.get('/products/slugs', ProductController.getProductSlugs);
 router.get('/products/featured', ProductController.getFeaturedProducts);
 router.get('/products/slug/:slug', ProductController.getProductBySlug);
