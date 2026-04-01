@@ -217,6 +217,31 @@ exports.deleteProduct = async (req, res) => {
     }
 };
 
+// GET /api/qi/products/catalog - Minimal projection for quote form product selector
+exports.getProductCatalog = async (req, res) => {
+    try {
+        const products = await Product.find({ status: 'published' }, { title: 1, slug: 1, presentationIds: 1 })
+            .populate('presentationIds', 'qty unit pretty')
+            .sort({ title: 1 })
+            .maxTimeMS(10000)
+            .lean();
+
+        const data = products.map(p => ({
+            id: p._id,
+            name: p.title,
+            presentations: (p.presentationIds || []).map(pr => ({
+                id: pr._id,
+                label: pr.pretty
+            }))
+        }));
+
+        res.json({ success: true, data });
+    } catch (error) {
+        console.error('Error fetching product catalog:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
 // GET /api/qi/products/slugs - Get all published product slugs (lightweight, for static path generation)
 exports.getProductSlugs = async (req, res) => {
     try {
