@@ -83,12 +83,8 @@ const allowedOrigins = [
 // Enhanced CORS configuration
 app.use(cors({
   origin: function (origin, callback) {
-    // Log the incoming request origin
-    console.log('Incoming request from origin:', origin);
-
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) {
-      console.log('Allowing request with no origin');
       return callback(null, true);
     }
 
@@ -211,6 +207,11 @@ app.get('/api/test-auth', (req, res) => {
       }
     }
   });
+});
+
+// Health check — no auth, no external calls, for Render health check pings
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // Routes
