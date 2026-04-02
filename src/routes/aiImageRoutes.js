@@ -79,7 +79,7 @@ router.post('/generate', async (req, res) => {
 
         res.json({
             success: true,
-            results: results.map((result, index) => ({
+            data: results.map((result, index) => ({
                 presentationId: validPresentations[index].id,
                 presentationName: validPresentations[index].name,
                 presentacion: result.presentacion,
@@ -92,12 +92,9 @@ router.post('/generate', async (req, res) => {
 
     } catch (error) {
         console.error('Error in AI image generation endpoint:', error);
-        console.error('Error details:', error.message);
-        console.error('Error stack:', error.stack);
         res.status(500).json({
             success: false,
-            error: 'Internal server error during AI image generation',
-            details: error.message
+            error: 'Internal server error during AI image generation'
         });
     }
 });
@@ -123,11 +120,16 @@ router.post('/generate-single', async (req, res) => {
         const defaultPrompt = "Edita exclusivamente la zona blanca de la etiqueta del producto, ese espacio vacío en blanco es el único lugar editable; en él agrega el nombre del producto: {producto} y debajo su presentación: {presentación}, con apariencia real de impresión en etiqueta; utiliza tipografía sans-serif moderna (Helvetica/Inter/Roboto o similar), color negro puro (#000000) sin contornos ni efectos, el nombre en seminegrita/medium y la presentación en regular/medium a un 70–80% del tamaño del nombre, alineada a la izquierda; si el nombre es largo divídelo automáticamente en dos líneas en lugar de reducir demasiado el tamaño; mantén márgenes internos del 4–6% para que el texto no se salga del área, aplica ligera curvatura/perspectiva para que ambas líneas sigan la forma cilíndrica del envase y se perciban adheridas a la etiqueta, simulando tinta impresa sin añadir gráficos ni efectos extra, conservando la iluminación, textura y proporciones originales del envase, con resultado nítido, fotorealista y sin artefactos.";
         const result = await geminiService.generateProductImage(producto, presentacion, testBase64Image, defaultPrompt);
 
+        if (!result.success) {
+            return res.status(500).json({ success: false, error: result.error });
+        }
+
         res.json({
-            success: result.success,
-            imageData: result.success ? result.imageData : null,
-            mimeType: result.success ? result.mimeType : null,
-            error: result.success ? null : result.error
+            success: true,
+            data: {
+                imageData: result.imageData,
+                mimeType: result.mimeType
+            }
         });
 
     } catch (error) {
@@ -151,18 +153,17 @@ router.get('/test', authMiddleware, async (req, res) => {
         const defaultPrompt = "Edita exclusivamente la zona blanca de la etiqueta del producto, ese espacio vacío en blanco es el único lugar editable; en él agrega el nombre del producto: {producto} y debajo su presentación: {presentación}, con apariencia real de impresión en etiqueta; utiliza tipografía sans-serif moderna (Helvetica/Inter/Roboto o similar), color negro puro (#000000) sin contornos ni efectos, el nombre en seminegrita/medium y la presentación en regular/medium a un 70–80% del tamaño del nombre, alineada a la izquierda; si el nombre es largo divídelo automáticamente en dos líneas en lugar de reducir demasiado el tamaño; mantén márgenes internos del 4–6% para que el texto no se salga del área, aplica ligera curvatura/perspectiva para que ambas líneas sigan la forma cilíndrica del envase y se perciban adheridas a la etiqueta, simulando tinta impresa sin añadir gráficos ni efectos extra, conservando la iluminación, textura y proporciones originales del envase, con resultado nítido, fotorealista y sin artefactos.";
         const result = await geminiService.generateProductImage('Test Product', 'Test Presentation', testBase64, defaultPrompt);
 
-        res.json({
-            success: result.success,
-            message: result.success ? 'Gemini API is working correctly' : 'Gemini API test failed',
-            error: result.success ? null : result.error
-        });
+        if (!result.success) {
+            return res.status(500).json({ success: false, error: result.error });
+        }
+
+        res.json({ success: true, data: { message: 'Gemini API is working correctly' } });
 
     } catch (error) {
         console.error('Error testing Gemini API:', error);
         res.status(500).json({
             success: false,
-            error: 'Failed to test Gemini API connection',
-            details: error.message
+            error: 'Failed to test Gemini API connection'
         });
     }
 });
