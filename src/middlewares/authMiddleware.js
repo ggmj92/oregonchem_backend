@@ -19,7 +19,7 @@ const authMiddleware = async (req, res, next) => {
     const authorizationHeader = req.headers.authorization;
     if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
         return res.status(401).json({
-            message: "Unauthorized",
+            success: false,
             error: "Missing or invalid authorization header"
         });
     }
@@ -30,7 +30,7 @@ const authMiddleware = async (req, res, next) => {
 
         if (decodedToken.exp < Date.now() / 1000) {
             return res.status(401).json({
-                message: "Unauthorized",
+                success: false,
                 error: "Token has expired"
             });
         }
@@ -39,7 +39,7 @@ const authMiddleware = async (req, res, next) => {
         next();
     } catch (error) {
         return res.status(401).json({
-            message: "Unauthorized",
+            success: false,
             error: error.message
         });
     }

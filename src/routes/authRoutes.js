@@ -7,18 +7,18 @@ router.post('/verify', async (req, res) => {
 
     if (!idToken) {
         return res.status(400).json({
-            message: 'Missing ID token',
-            error: 'No ID token provided in request body'
+            success: false,
+            error: 'ID token is required'
         });
     }
 
     try {
         const decodedToken = await mainApp.auth().verifyIdToken(idToken);
-        res.json({ uid: decodedToken.uid });
+        res.json({ success: true, data: { uid: decodedToken.uid } });
     } catch (error) {
         console.error('Token verification failed:', error);
-        res.status(401).json({ 
-            message: 'Unauthorized',
+        res.status(401).json({
+            success: false,
             error: error.message
         });
     }
